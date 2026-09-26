@@ -6,12 +6,27 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "android": { "package": "com.beessync.pasaje" },
+    "android": {
+      "package": "com.beessync.pasaje",
+      "permissions": [
+        "android.permission.NFC"
+      ]
+    },
     "plugins": [
       "expo-dev-client",
       "expo-secure-store",
       "expo-sqlite",
-      ["react-native-nfc-manager", { "nfcPermission": "Pasaje usa NFC para pagar y cobrar boletos" }]
-    ]
+      [
+        "react-native-nfc-manager",
+        {
+          "nfcPermission": "Pasaje usa NFC para pagar y cobrar boletos"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "71533ceb-368f-40bc-ae0e-42a25b874579"
+      }
+    }
   }
 }

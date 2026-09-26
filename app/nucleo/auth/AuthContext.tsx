@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, type ReactNode } from "react";
-import { login as loginApi, type Credenciales } from "@nucleo/api/authApi";
+import { login as loginApi, registrar as registrarApi, type Credenciales, type DatosRegistro } from "@nucleo/api/authApi";
 import { setAuthToken, setOnUnauthorized } from "@nucleo/api/client";
 import type { Sesion } from "@nucleo/types/auth";
 import { borrarSesion, guardarSesion, leerSesion } from "./tokenStorage";
@@ -8,6 +8,7 @@ interface AuthValue {
   sesion: Sesion | null;
   cargando: boolean;
   login: (c: Credenciales) => Promise<void>;
+  registrar: (d: DatosRegistro) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -36,14 +37,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => setOnUnauthorized(null);
   }, [logout]);
 
-  const login = useCallback(async (c: Credenciales) => {
-    const s = await loginApi(c);
+  const iniciar = useCallback(async (s: Sesion) => {
     setAuthToken(s.token);
     setSesion(s);
     await guardarSesion(s);
   }, []);
 
-  const value = useMemo(() => ({ sesion, cargando, login, logout }), [sesion, cargando, login, logout]);
+  const login = useCallback(async (c: Credenciales) => iniciar(await loginApi(c)), [iniciar]);
+  const registrar = useCallback(async (d: DatosRegistro) => iniciar(await registrarApi(d)), [iniciar]);
+
+  const value = useMemo(
+    () => ({ sesion, cargando, login, registrar, logout }),
+    [sesion, cargando, login, registrar, logout]
+  );
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

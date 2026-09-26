@@ -1,5 +1,5 @@
 import { USE_MOCKS } from "@nucleo/config";
-import type { Sesion, Usuario } from "@nucleo/types/auth";
+import type { Categoria, Sesion, Usuario } from "@nucleo/types/auth";
 import { api } from "./client";
 
 export interface Credenciales {
@@ -31,5 +31,37 @@ async function loginMock({ telefono, clave }: Credenciales): Promise<Sesion> {
 export async function login(cred: Credenciales): Promise<Sesion> {
   if (USE_MOCKS) return loginMock(cred);
   const { data } = await api.post<Sesion>("/auth/login", cred);
+  return data;
+}
+
+export interface DatosRegistro extends Credenciales {
+  nombre: string;
+  categoria: Categoria;
+}
+
+// El registro público solo crea pasajeros; si la categoría no es general queda sin verificar.
+async function registroMock(d: DatosRegistro): Promise<Sesion> {
+  if (SEMILLA.some((s) => s.telefono === d.telefono)) {
+    throw { response: { status: 409, data: { error: { codigo: "CONFLICTO", mensaje: "Ese teléfono ya está registrado" } } } };
+  }
+  return {
+    token: "mock-jwt",
+    usuario: {
+      id: `mock-${d.telefono}`,
+      nombre: d.nombre,
+      telefono: d.telefono,
+      rol: "pasajero",
+      categoria: d.categoria,
+      categoriaVerificada: d.categoria === "general",
+      bloqueado: false,
+      creadoEn: new Date().toISOString(),
+    },
+  };
+}
+
+/** POST /auth/registro → 201 { token, usuario } */
+export async function registrar(d: DatosRegistro): Promise<Sesion> {
+  if (USE_MOCKS) return registroMock(d);
+  const { data } = await api.post<Sesion>("/auth/registro", d);
   return data;
 }
