@@ -1,11 +1,10 @@
+import { OFFSET_VE_MS } from "./zonaHoraria";
 import type { Categoria } from "../types/auth";
 import type { Linea, Tabulador, Tramo } from "../types/paquete";
 
 // Fórmula de la sección 7. Cuando Juan suba /shared/tarifa.js, esto se reemplaza por ese módulo:
 // backend y recolector deben calcular IGUAL.
 
-// Mérida (UTC-4, sin horario de verano): el día se decide en hora local, no UTC.
-const OFFSET_VE_MS = -4 * 3600 * 1000;
 
 export function esDomingoOFeriado(ocurridoEn: Date, feriados: string[]): boolean {
   const local = new Date(ocurridoEn.getTime() + OFFSET_VE_MS);

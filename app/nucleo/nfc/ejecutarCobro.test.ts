@@ -95,7 +95,7 @@ test("tramo fijo manda sobre la sugerencia", async () => {
 
 test("«Cobrar como general» ignora la categoría del boleto", async () => {
   const p = pasajero({ boletos: [crearBoleto({ categoria: 2 })] });
-  const r = await ejecutarCobro(p.transceive, setup({ cobrarComoGeneral: true }).opciones);
+  const r = await ejecutarCobro(p.transceive, setup({ categoriaForzada: "general" }).opciones);
   assert.ok(r.ok);
   assert.equal(r.cobro.monto, 28000);
 });

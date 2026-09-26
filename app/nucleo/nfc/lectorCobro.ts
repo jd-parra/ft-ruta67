@@ -1,6 +1,6 @@
 import NfcManager, { NfcAdapter, NfcTech } from "react-native-nfc-manager";
 import { bidsCobrados, encolarCobro } from "@nucleo/almacen/colaCobros";
-import { ejecutarCobro, type OpcionesCobro, type ResultadoCobro } from "./ejecutarCobro";
+import { ejecutarCobro, fallo, type OpcionesPreparar, type ResultadoCobro } from "./ejecutarCobro";
 
 let iniciado = false;
 
@@ -14,22 +14,32 @@ export async function nfcListo(): Promise<boolean> {
   return NfcManager.isEnabled();
 }
 
-export type OpcionesLectura = Omit<OpcionesCobro, "yaCobrado" | "persistir">;
+export type OpcionesLectura = Omit<OpcionesPreparar, "yaCobrado" | "ahora">;
 
-/** Espera un toque (reader mode, IsoDep) y ejecuta el cobro. Se cancela con `cancelarLectura()`. */
-export async function leerCobro(o: OpcionesLectura): Promise<ResultadoCobro> {
+/**
+ * Espera un toque (reader mode, IsoDep) y ejecuta el cobro. Se cancela con `cancelarLectura()`.
+ * Las opciones se piden DESPUÉS del toque: si el recolector cambia el selector mientras el
+ * lector espera, se usa el valor actual.
+ */
+export async function leerCobro(opciones: () => OpcionesLectura): Promise<ResultadoCobro> {
   try {
     await NfcManager.requestTechnology(NfcTech.IsoDep, {
       isReaderModeEnabled: true,
       readerModeFlags: NfcAdapter.FLAG_READER_NFC_A | NfcAdapter.FLAG_READER_NFC_B | NfcAdapter.FLAG_READER_SKIP_NDEF_CHECK,
     });
+  } catch {
+    // Cancelado (pantalla cerrada / app en segundo plano) o NFC no disponible: no hubo toque.
+    return fallo("NFC_CANCELADO");
+  }
+
+  try {
     return await ejecutarCobro((apdu) => NfcManager.isoDepHandler.transceive(apdu), {
-      ...o,
+      ...opciones(),
       yaCobrado: await bidsCobrados(),
       persistir: encolarCobro,
     });
   } catch {
-    return { ok: false, codigo: "NFC_ERROR", mensaje: "Se perdió la conexión NFC. Vuelve a acercar el teléfono." };
+    return fallo("NFC_ERROR");
   } finally {
     await NfcManager.cancelTechnologyRequest().catch(() => undefined);
   }

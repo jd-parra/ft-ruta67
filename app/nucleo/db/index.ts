@@ -30,7 +30,9 @@ const migraciones = [
      metodo TEXT NOT NULL,
      ocurrido_en TEXT NOT NULL,
      categoria TEXT NOT NULL,
-     sincronizado INTEGER NOT NULL DEFAULT 0
+     estado TEXT NOT NULL DEFAULT 'pendiente',
+     codigo TEXT,
+     pasajero_nombre TEXT
    );`,
 ];
 

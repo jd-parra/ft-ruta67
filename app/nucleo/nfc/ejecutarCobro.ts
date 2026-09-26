@@ -13,7 +13,9 @@ export type CodigoCobro =
   | "RESPUESTA_INVALIDA"
   | "TRAMO_INVALIDO"
   | "ERROR_LOCAL"
-  | "NFC_ERROR";
+  | "NFC_ERROR"
+  | "NFC_CANCELADO"
+  | "CORRECCION_FALLIDA";
 
 const MENSAJES_COBRO: Record<Exclude<CodigoCobro, CodigoBoleto>, string> = {
   PASAJERO_SIN_APP: "El pasajero debe abrir la pantalla Pagar",
@@ -22,19 +24,28 @@ const MENSAJES_COBRO: Record<Exclude<CodigoCobro, CodigoBoleto>, string> = {
   TRAMO_INVALIDO: "El tramo no es de la línea de esta unidad",
   ERROR_LOCAL: "No se pudo guardar el cobro",
   NFC_ERROR: "Se perdió la conexión NFC. Vuelve a acercar el teléfono.",
+  NFC_CANCELADO: "Lectura cancelada",
+  CORRECCION_FALLIDA: "No se pudo corregir el cobro",
 };
 
-export type ResultadoCobro =
-  | {
-      ok: true;
-      cobro: CobroLocal;
-      boleto: Boleto;
-      tramo: Tramo;
-      categoriaAplicada: Categoria;
-      /** false: los teléfonos se separaron antes del RECIBO. El cobro sigue valiendo. */
-      reciboEnviado: boolean;
-    }
-  | { ok: false; codigo: CodigoCobro; mensaje: string };
+export interface Falla {
+  ok: false;
+  codigo: CodigoCobro;
+  mensaje: string;
+}
+
+export interface CobroPreparado {
+  ok: true;
+  cobro: CobroLocal;
+  boleto: Boleto;
+  tramo: Tramo;
+  categoriaAplicada: Categoria;
+}
+
+export type ResultadoCobro = (CobroPreparado & {
+  /** false: los teléfonos se separaron antes del RECIBO. El cobro sigue valiendo. */
+  reciboEnviado: boolean;
+}) | Falla;
 
 export interface CobroPersistir {
   bid: string;
@@ -42,22 +53,63 @@ export interface CobroPersistir {
   categoria: Categoria;
 }
 
-export interface OpcionesCobro {
+export interface OpcionesPreparar {
   paquete: PaqueteRecolector;
   modo: ModoTramo;
   yaCobrado: ReadonlySet<string>;
-  /** Botón "Cobrar como general" cuando el recolector duda de la categoría. */
-  cobrarComoGeneral?: boolean;
+  /** «Cobrar como general»: el recolector duda de la categoría. Solo puede quitar descuento, nunca dar uno. */
+  categoriaForzada?: "general";
   ahora?: Date;
+}
+
+export interface OpcionesCobro extends OpcionesPreparar {
   /** Debe guardar en cola_cobros ANTES de enviar el RECIBO: así el bid queda quemado. */
   persistir: (c: CobroPersistir) => Promise<void>;
 }
 
-const fallo = (codigo: CodigoCobro): ResultadoCobro => ({
+export const fallo = (codigo: CodigoCobro, mensaje?: string): Falla => ({
   ok: false,
   codigo,
-  mensaje: codigo in MENSAJES ? MENSAJES[codigo as CodigoBoleto] : MENSAJES_COBRO[codigo as keyof typeof MENSAJES_COBRO],
+  mensaje:
+    mensaje ?? (codigo in MENSAJES ? MENSAJES[codigo as CodigoBoleto] : MENSAJES_COBRO[codigo as keyof typeof MENSAJES_COBRO]),
 });
+
+/**
+ * Reglas 1–4 (8.3) + tramo + monto. No toca disco ni NFC: sirve igual para un toque nuevo
+ * y para re-cobrar un boleto ya guardado (Corregir).
+ */
+export function prepararCobro(raw: string, tramoSugerido: number, o: OpcionesPreparar): CobroPreparado | Falla {
+  const { paquete } = o;
+  const ahora = o.ahora ?? new Date();
+
+  const v = validarBoleto(raw, paquete, o.yaCobrado, ahora);
+  if (!v.ok) return fallo(v.codigo);
+
+  const tramo = elegirTramo(paquete.linea, o.modo, tramoSugerido);
+  if (!tramo) return fallo("TRAMO_INVALIDO");
+
+  const categoria: Categoria = o.categoriaForzada ?? v.boleto.categoria;
+  const monto = calcularMonto({
+    linea: paquete.linea,
+    tramo,
+    tabulador: tabuladorVigente(paquete.tabulador, paquete.tabuladorProximo, ahora),
+    categoria,
+    ocurridoEn: ahora,
+    feriados: paquete.feriados,
+  });
+  if (!cubreMonto(monto, v.boleto)) return fallo("BOLETO_INSUFICIENTE");
+
+  // `ocurridoEn` truncado a segundos: es el mismo valor que viaja en el RECIBO, así el
+  // backend puede casar cobro y recibo (6.4).
+  const seg = Math.floor(ahora.getTime() / 1000);
+  return {
+    ok: true,
+    boleto: v.boleto,
+    tramo,
+    categoriaAplicada: categoria,
+    cobro: { raw, tramoCodigo: tramo.codigo, monto, metodo: "nfc", ocurridoEn: new Date(seg * 1000).toISOString() },
+  };
+}
 
 /** Un toque completo (contrato 8.3 y 9). `transceive` envía un APDU y devuelve la respuesta. */
 export async function ejecutarCobro(
@@ -77,53 +129,28 @@ export async function ejecutarCobro(
   const ofrecido = parsearBoletoOfrecido(ped.datos);
   if (!ofrecido) return fallo("RESPUESTA_INVALIDA");
 
-  // 3. Reglas 1–3 (8.3), sin internet
-  const ahora = o.ahora ?? new Date();
+  // 3. Reglas, tramo y monto
   const raw = base64urlDeBytes(ofrecido.boleto);
-  const v = validarBoleto(raw, paquete, o.yaCobrado, ahora);
-  if (!v.ok) return fallo(v.codigo);
+  const p = prepararCobro(raw, ofrecido.tramoSugerido, o);
+  if (!p.ok) return p;
 
-  // 4. Tramo, categoría y monto
-  const tramo = elegirTramo(paquete.linea, o.modo, ofrecido.tramoSugerido);
-  if (!tramo) return fallo("TRAMO_INVALIDO");
-  const categoria: Categoria = o.cobrarComoGeneral ? "general" : v.boleto.categoria;
-  const monto = calcularMonto({
-    linea: paquete.linea,
-    tramo,
-    tabulador: tabuladorVigente(paquete.tabulador, paquete.tabuladorProximo, ahora),
-    categoria,
-    ocurridoEn: ahora,
-    feriados: paquete.feriados,
-  });
-
-  // Regla 4
-  if (!cubreMonto(monto, v.boleto)) return fallo("BOLETO_INSUFICIENTE");
-
-  // 5. Guardar el bid ANTES del RECIBO. `ocurridoEn` se trunca a segundos: es el mismo valor
-  //    que viaja en el RECIBO, así el backend puede casar cobro y recibo (6.4).
-  const ocurridoSeg = Math.floor(ahora.getTime() / 1000);
-  const cobro: CobroLocal = {
-    raw,
-    tramoCodigo: tramo.codigo,
-    monto,
-    metodo: "nfc",
-    ocurridoEn: new Date(ocurridoSeg * 1000).toISOString(),
-  };
+  // 4. Guardar el bid ANTES del RECIBO
   try {
-    await o.persistir({ bid: v.boleto.bid, cobro, categoria });
+    await o.persistir({ bid: p.boleto.bid, cobro: p.cobro, categoria: p.categoriaAplicada });
   } catch {
     return fallo("ERROR_LOCAL");
   }
 
-  // 6. RECIBO. Si falla (se separaron) el cobro sigue igual.
+  // 5. RECIBO. Si falla (se separaron) el cobro sigue igual.
   let reciboEnviado = false;
   try {
     const bid = Array.from(bytesDeBase64url(raw).slice(1, 17));
-    const rec = parsearRespuesta(await transceive(cmdRecibo(bid, tramo.codigo, monto, ocurridoSeg)));
+    const seg = Math.floor(new Date(p.cobro.ocurridoEn).getTime() / 1000);
+    const rec = parsearRespuesta(await transceive(cmdRecibo(bid, p.tramo.codigo, p.cobro.monto, seg)));
     reciboEnviado = rec.sw === SW.OK;
   } catch {
     reciboEnviado = false;
   }
 
-  return { ok: true, cobro, boleto: v.boleto, tramo, categoriaAplicada: categoria, reciboEnviado };
+  return { ...p, reciboEnviado };
 }
