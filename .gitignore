@@ -1,5 +1,48 @@
+# Dependencias
 node_modules/
+
+# Expo / Metro
 .expo/
+.expo-shared/
 dist/
+web-build/
+
+# Builds nativos generados (prebuild)
+android/
+ios/
+*.apk
+*.aab
+*.ipa
+
+# Claves y certificados
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Variables de entorno
+.env
+.env.*
+!.env.example
+
+# Logs
 *.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+pnpm-debug.log*
+
+# TypeScript
+*.tsbuildinfo
+
+# Sistema / editores
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
+*.swp
+
+# Claude Code (config local)
+.claude/settings.local.json
