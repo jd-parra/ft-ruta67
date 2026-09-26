@@ -11,8 +11,7 @@
       "expo-dev-client",
       "expo-secure-store",
       "expo-sqlite",
-      ["react-native-nfc-manager", { "nfcPermission": "Pasaje usa NFC para pagar y cobrar boletos" }],
-      "./plugins/withHce"
+      ["react-native-nfc-manager", { "nfcPermission": "Pasaje usa NFC para pagar y cobrar boletos" }]
     ]
   }
 }

@@ -7,6 +7,7 @@ import { Boton } from "@componentes/atoms/Boton";
 import { useAuth } from "@nucleo/auth/AuthContext";
 import { LoginScreen } from "@pantallas/auth/LoginScreen";
 import { InicioScreen } from "@pantallas/pasajero/InicioScreen";
+import { PagarScreen } from "@pantallas/pasajero/PagarScreen";
 import { CobrarScreen } from "@pantallas/recolector/CobrarScreen";
 import type { AuthStackParams, PasajeroTabsParams, RecolectorTabsParams } from "./types";
 
@@ -19,6 +20,7 @@ function PasajeroNavigator() {
   return (
     <PasajeroTabs.Navigator screenOptions={{ headerShown: false }}>
       <PasajeroTabs.Screen name="Inicio" component={InicioScreen} />
+      <PasajeroTabs.Screen name="Pagar" component={PagarScreen} />
     </PasajeroTabs.Navigator>
   );
 }

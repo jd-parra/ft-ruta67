@@ -25,4 +25,4 @@ pnpm typecheck
 - `EXPO_PUBLIC_USE_MOCKS=false` y `EXPO_PUBLIC_API_HOST=<ip>:3000` para hablar con el backend.
 - Login mock (clave `1234`): `04140000001` pasajero, `04140000002` recolector.
 - Alias: `@nucleo`, `@pantallas`, `@componentes`, `@shared`.
-- `plugins/withHce.js` agrega permiso NFC, servicio HCE y `aid_list.xml` (AID `F0504153450002`).
+- HCE: módulo nativo propio `app/modules/pasaje-hce` (HostApduService con el protocolo v2, AID `F0504153450002`). `react-native-hce` no sirve: solo emula tags NDEF.
