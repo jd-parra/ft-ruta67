@@ -8,7 +8,9 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test": "tsx --test \"nucleo/**/*.test.ts\"",
+    "dev:boleto": "tsx scripts/devBoleto.ts"
   },
   "dependencies": {
     "@react-navigation/bottom-tabs": "^7.19.2",
@@ -33,7 +35,9 @@
     "tweetnacl-util": "^0.15.1"
   },
   "devDependencies": {
+    "@types/node": "^26.6.3",
     "@types/react": "^19.2.18",
+    "tsx": "^4.23.15",
     "typescript": "^6.0.3"
   }
 }

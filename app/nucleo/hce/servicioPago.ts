@@ -1,5 +1,5 @@
 import { PasajeHce } from "./PasajeHce";
-import { bidDeRaw, leerBoletos, quitarBoletosPorBid } from "@nucleo/boletos/almacenBoletos";
+import { leerBoletos, quitarBoletosPorBid } from "@nucleo/boletos/almacenBoletos";
 import { aReciboLocal, frecuentesPorLinea, guardarRecibos, type ReciboLocal } from "@nucleo/almacen/recibos";
 
 export const hceSoportado = () => PasajeHce?.soportado() ?? false;
@@ -53,5 +53,3 @@ export async function iniciarPago(alRecibir: (r: ReciboLocal[]) => void): Promis
     if (r.length) alRecibir(r);
   };
 }
-
-export { bidDeRaw };

@@ -4,12 +4,28 @@
     "strict": true,
     "allowJs": true,
     "paths": {
-      "@nucleo/*": ["./nucleo/*"],
-      "@pantallas/*": ["./pantallas/*"],
-      "@componentes/*": ["./componentes/*"],
-      "@shared/*": ["../shared/*"]
-    }
+      "@nucleo/*": [
+        "./nucleo/*"
+      ],
+      "@pantallas/*": [
+        "./pantallas/*"
+      ],
+      "@componentes/*": [
+        "./componentes/*"
+      ],
+      "@shared/*": [
+        "../shared/*"
+      ]
+    },
+    "types": [
+      "node"
+    ]
   },
-  "include": ["**/*.ts", "**/*.tsx"],
-  "exclude": ["node_modules"]
+  "include": [
+    "**/*.ts",
+    "**/*.tsx"
+  ],
+  "exclude": [
+    "node_modules"
+  ]
 }

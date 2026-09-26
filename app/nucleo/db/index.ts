@@ -15,6 +15,23 @@ const migraciones = [
      sincronizado INTEGER NOT NULL DEFAULT 0
    );`,
   `CREATE INDEX IF NOT EXISTS idx_recibos_linea ON recibos (linea_codigo, tramo_codigo);`,
+  // Paquete del recolector (una sola fila). Sección 10.
+  `CREATE TABLE IF NOT EXISTS paquete (
+     id INTEGER PRIMARY KEY CHECK (id = 1),
+     json TEXT NOT NULL,
+     guardado_en TEXT NOT NULL
+   );`,
+  // Cobros pendientes de subir y bid ya cobrados. Sección 10.
+  `CREATE TABLE IF NOT EXISTS cola_cobros (
+     bid TEXT PRIMARY KEY NOT NULL,
+     raw TEXT NOT NULL,
+     tramo_codigo INTEGER NOT NULL,
+     monto INTEGER NOT NULL,
+     metodo TEXT NOT NULL,
+     ocurrido_en TEXT NOT NULL,
+     categoria TEXT NOT NULL,
+     sincronizado INTEGER NOT NULL DEFAULT 0
+   );`,
 ];
 
 export function getDb() {
