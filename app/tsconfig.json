@@ -1,0 +1,15 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "allowJs": true,
+    "paths": {
+      "@nucleo/*": ["./nucleo/*"],
+      "@pantallas/*": ["./pantallas/*"],
+      "@componentes/*": ["./componentes/*"],
+      "@shared/*": ["../shared/*"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"],
+  "exclude": ["node_modules"]
+}

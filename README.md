@@ -1,32 +1,28 @@
-# Ruta 67
+# Pasaje
 
-App móvil (React Native + Expo + TypeScript) con el mapa de restaurantes de Ejido, Mérida.
+Pago de pasaje por NFC/QR en Mérida, Venezuela. Fuente de verdad: `CONTRATO.md` (v2).
 
-## Requisitos
-- Node 20+ y pnpm 10
-- **Dev build** (Expo Go no sirve: NFC/HCE son nativos): `eas build --profile development --platform android`, o local con `pnpm exec expo run:android`
+```
+/app            app Expo (dev build), un solo binario con modo pasajero y modo recolector
+  /nucleo       NFC/HCE, boletos, almacén local, sync, api, auth, navegación  (Andy)
+  /pantallas    pasajero/, recolector/, auth/                                   (Jose)
+  /componentes  Atomic Design: atoms, molecules, organisms, templates
+/backend        Node + Express + Socket.IO + PostgreSQL                         (Juan)
+/panel-central  React + Vite                                                    (Jose)
+/shared         boleto.js, tarifa.js, codigos.js, dev-keys.json
+/mocks          JSON con la forma de la API
+```
 
-## Comandos
+## App
+Expo Go **no sirve** (NFC/HCE son nativos): hace falta dev build.
 ```bash
+cd app
 pnpm install
-pnpm start        # con dev client instalado
-pnpm android
+eas build --profile development --platform android   # o: pnpm exec expo run:android
+pnpm start
 pnpm typecheck
 ```
-
-## Estructura
-```
-src/app/nucleo/       núcleo (config, api, auth, db, realtime, navigation, theme, types)
-  components/         Atomic Design: atoms / molecules / organisms / templates
-src/app/pantallas/    pantallas (auth, pasajero, recolector) — las monta Jose
-src/shared/           código compartido con el panel web (boleto, tarifa) — Juan
-plugins/withHce.js    config plugin: permiso NFC, servicio HCE y aid_list.xml
-```
-Alias: `@nucleo/*`, `@pantallas/*`, `@shared/*`.
-
-- El rol del login decide el modo (pasajero / recolector), con navegación separada.
-- `USE_MOCKS` (por defecto `true`): `EXPO_PUBLIC_USE_MOCKS=false` y `EXPO_PUBLIC_API_URL` para el backend real.
-- Mock login: usuario que empiece con `rec` = recolector, otro = pasajero.
-- Mapa con tiles de OpenStreetMap (sin API key).
-
-`legacy-web/` conserva la versión web original en Leaflet.
+- `EXPO_PUBLIC_USE_MOCKS=false` y `EXPO_PUBLIC_API_HOST=<ip>:3000` para hablar con el backend.
+- Login mock (clave `1234`): `04140000001` pasajero, `04140000002` recolector.
+- Alias: `@nucleo`, `@pantallas`, `@componentes`, `@shared`.
+- `plugins/withHce.js` agrega permiso NFC, servicio HCE y `aid_list.xml` (AID `F0504153450002`).

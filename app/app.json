@@ -1,0 +1,18 @@
+{
+  "expo": {
+    "name": "Pasaje",
+    "slug": "pasaje",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "android": { "package": "com.beessync.pasaje" },
+    "plugins": [
+      "expo-dev-client",
+      "expo-secure-store",
+      "expo-sqlite",
+      ["react-native-nfc-manager", { "nfcPermission": "Pasaje usa NFC para pagar y cobrar boletos" }],
+      "./plugins/withHce"
+    ]
+  }
+}
