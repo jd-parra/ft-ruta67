@@ -1,0 +1,13 @@
+{
+  "expo": {
+    "name": "Ruta 67",
+    "slug": "ruta67",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "newArchEnabled": true,
+    "ios": { "supportsTablet": true, "bundleIdentifier": "com.beessync.ruta67" },
+    "android": { "package": "com.beessync.ruta67" },
+    "plugins": ["expo-status-bar"]
+  }
+}
