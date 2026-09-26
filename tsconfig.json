@@ -2,7 +2,9 @@
   "extends": "expo/tsconfig.base",
   "compilerOptions": {
     "strict": true,
-    "paths": { "@/*": ["./src/*"] }
+    "paths": { "@nucleo/*": ["./src/app/nucleo/*"],
+      "@pantallas/*": ["./src/app/pantallas/*"],
+      "@shared/*": ["./src/shared/*"] }
   },
   "include": ["**/*.ts", "**/*.tsx"],
   "exclude": ["node_modules", "legacy-web"]
