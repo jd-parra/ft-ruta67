@@ -9,7 +9,23 @@ export const colors = {
   fondo: "#FAFAFC",
   texto: "#1F1B2E",
   blanco: "#FFFFFF",
+  // Neutros para texto secundario y bordes suaves.
+  textoSuave: "#6B6880",
+  borde: "#E7E3F3",
+  exitoClaro: "#DCFCE7",
+  errorClaro: "#FEE2E2",
+  aviso: "#B45309",
+  avisoClaro: "#FEF3C7",
 };
 
-export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24 };
-export const radius = { sm: 8, md: 12, pill: 999 };
+export const spacing = { xs: 4, sm: 8, md: 12, lg: 16, xl: 24, xxl: 32 };
+export const radius = { sm: 8, md: 12, lg: 20, pill: 999 };
+
+// Sombra suave para tarjetas (iOS usa shadow*, Android elevation).
+export const sombra = {
+  shadowColor: "#4C1D95",
+  shadowOpacity: 0.08,
+  shadowRadius: 12,
+  shadowOffset: { width: 0, height: 4 },
+  elevation: 3,
+};
