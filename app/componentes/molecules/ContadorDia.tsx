@@ -1,9 +1,7 @@
 import { View, StyleSheet } from "react-native";
 import { AppText } from "@componentes/atoms/AppText";
+import { formatearBs } from "@componentes/formato";
 import { colors, radius } from "@nucleo/theme";
-
-export const formatearBs = (centimos: number) =>
-  `${(centimos / 100).toLocaleString("es-VE", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Bs`;
 
 export function ContadorDia({ cantidad, total }: { cantidad: number; total: number }) {
   return (

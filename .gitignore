@@ -8,8 +8,8 @@ dist/
 web-build/
 
 # Builds nativos generados (prebuild)
-android/
-ios/
+/app/android/
+/app/ios/
 *.apk
 *.aab
 *.ipa

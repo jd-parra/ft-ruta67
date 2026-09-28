@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { AppState } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
-import { boletosRestantes, hceSoportado, iniciarPago } from "./servicioPago";
+import { boletosRestantes, hceSoportado, iniciarPago } from "@nucleo/hce/servicioPago";
 import type { ReciboLocal } from "@nucleo/almacen/recibos";
 
 /** Activa la tarjeta emulada solo con la pantalla enfocada y la app en primer plano. */

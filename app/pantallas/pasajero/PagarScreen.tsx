@@ -1,13 +1,20 @@
 import { useState } from "react";
-import { View, StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@componentes/atoms/AppText";
 import { Boton } from "@componentes/atoms/Boton";
 import { CampoTexto } from "@componentes/atoms/CampoTexto";
+import { Tarjeta } from "@componentes/atoms/Tarjeta";
+import { formatearBs, formatearFechaHora } from "@componentes/formato";
+import { BannerAviso } from "@componentes/molecules/BannerAviso";
+import { CirculoNfc } from "@componentes/molecules/CirculoNfc";
+import { FilaLista } from "@componentes/molecules/FilaLista";
+import { Pantalla } from "@componentes/templates/Pantalla";
 import { agregarBoletos } from "@nucleo/boletos/almacenBoletos";
-import { usePagoHce } from "@nucleo/hce/usePagoHce";
-import { colors } from "@nucleo/theme";
+import { usePagoHce } from "@hooks/usePagoHce";
+import { colors, radius } from "@nucleo/theme";
 
-// Versión mínima para probar el protocolo. Jose/Andy la rediseñan después (tarea 5).
+// Diseño de Jose sobre la lógica de Andy (usePagoHce): el HCE solo responde con esta pantalla abierta.
 export function PagarScreen() {
   const [version, setVersion] = useState(0);
   const [pegado, setPegado] = useState("");
@@ -25,29 +32,76 @@ export function PagarScreen() {
     }
   };
 
+  const listo = soportado && activo && restantes > 0;
+  const estado = !soportado
+    ? { titulo: "Este teléfono no puede pagar por NFC", detalle: "Necesitas un Android con NFC. El pago por QR llega pronto." }
+    : !activo
+      ? { titulo: "Preparando…", detalle: "Activando el pago por NFC" }
+      : restantes === 0
+        ? { titulo: "No tienes boletos", detalle: "Conéctate a internet y recarga saldo para obtener boletos." }
+        : { titulo: "Acerca tu teléfono", detalle: "Pon la parte de atrás junto al teléfono del recolector" };
+
   return (
-    <View style={styles.root}>
-      <AppText variant="titulo">Pagar</AppText>
-      <AppText>
-        {!soportado ? "Este teléfono no soporta HCE" : activo ? "📡 Acerca el teléfono al recolector" : "Inactivo"}
-      </AppText>
-      <AppText>🎫 {restantes} boletos listos</AppText>
-      {error && <AppText style={{ color: colors.error }}>{error}</AppText>}
-      {ultimoRecibo && (
-        <AppText>
-          ✅ Último cobro: tramo {ultimoRecibo.tramoCodigo} · {(ultimoRecibo.monto / 100).toFixed(2)} Bs
+    <Pantalla titulo="Pagar" subtitulo="Mantén esta pantalla abierta al subir">
+      <CirculoNfc activo={listo} icono={!soportado ? "close" : listo ? "phone-portrait-outline" : "hourglass-outline"} />
+
+      <View style={styles.textos}>
+        <AppText variant="titulo" style={styles.centro}>{estado.titulo}</AppText>
+        <AppText style={[styles.centro, styles.suave]}>{estado.detalle}</AppText>
+      </View>
+
+      <View style={[styles.boletos, restantes === 0 && styles.boletosVacio]}>
+        <Ionicons name="ticket-outline" size={16} color={restantes === 0 ? colors.error : colors.primarioOscuro} />
+        <AppText style={[styles.boletosTexto, restantes === 0 && { color: colors.error }]}>
+          {restantes} {restantes === 1 ? "boleto listo" : "boletos listos"}
         </AppText>
+      </View>
+
+      {error && <BannerAviso tono="error" icono="alert-circle-outline" titulo="No se pudo activar el pago" mensaje={error} />}
+
+      {ultimoRecibo && (
+        <Tarjeta style={styles.recibo}>
+          <FilaLista
+            icono="checkmark"
+            colorIcono={colors.blanco}
+            fondoIcono={colors.exito}
+            titulo="¡Pago registrado!"
+            subtitulo={`Tramo ${ultimoRecibo.tramoCodigo} · Unidad ${ultimoRecibo.unidadCodigo}`}
+            valor={formatearBs(ultimoRecibo.monto)}
+            colorValor={colors.exito}
+            detalleValor={formatearFechaHora(ultimoRecibo.ocurridoEn)}
+          />
+        </Tarjeta>
       )}
+
       {__DEV__ && (
-        <>
-          <AppText variant="etiqueta">DEV: pegar boleto de prueba (base64url, `npm run boleto-prueba`)</AppText>
+        <Tarjeta style={styles.dev}>
+          <AppText variant="etiqueta">DEV: pegar boleto de prueba (base64url, `pnpm dev:boleto`)</AppText>
           <CampoTexto value={pegado} onChangeText={setPegado} placeholder="boleto base64url" autoCapitalize="none" />
           <Boton titulo="Cargar boleto" onPress={() => void cargar()} deshabilitado={!pegado} secundario />
           {msg && <AppText variant="etiqueta">{msg}</AppText>}
-        </>
+        </Tarjeta>
       )}
-    </View>
+    </Pantalla>
   );
 }
 
-const styles = StyleSheet.create({ root: { flex: 1, justifyContent: "center", padding: 24, gap: 12 } });
+const styles = StyleSheet.create({
+  textos: { gap: 6, marginTop: -8 },
+  centro: { textAlign: "center" },
+  suave: { color: colors.textoSuave },
+  boletos: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    alignSelf: "center",
+    backgroundColor: colors.primarioClaro,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: radius.pill,
+  },
+  boletosVacio: { backgroundColor: colors.errorClaro },
+  boletosTexto: { color: colors.primarioOscuro, fontWeight: "700" },
+  recibo: { paddingVertical: 4 },
+  dev: { gap: 10 },
+});

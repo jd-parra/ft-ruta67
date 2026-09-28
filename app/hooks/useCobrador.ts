@@ -8,8 +8,8 @@ import { conectarSocket } from "@nucleo/realtime/socket";
 import { corregir, sincronizarCobros } from "@nucleo/sync/cobros";
 import type { ModoTramo } from "@nucleo/tarifas/elegirTramo";
 import type { PaqueteRecolector } from "@nucleo/types/paquete";
-import { cancelarLectura, leerCobro, nfcListo } from "./lectorCobro";
-import type { ResultadoCobro } from "./ejecutarCobro";
+import { cancelarLectura, leerCobro, nfcListo } from "@nucleo/nfc/lectorCobro";
+import type { ResultadoCobro } from "@nucleo/nfc/ejecutarCobro";
 
 export const SEGUNDOS_TARJETA = 3;
 

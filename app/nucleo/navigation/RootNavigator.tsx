@@ -1,35 +1,84 @@
 import { ActivityIndicator, View } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+import { createBottomTabNavigator, type BottomTabNavigationOptions } from "@react-navigation/bottom-tabs";
+import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@componentes/atoms/AppText";
 import { Boton } from "@componentes/atoms/Boton";
 import { useAuth } from "@nucleo/auth/AuthContext";
+import { colors } from "@nucleo/theme";
+import { TurnoProvider } from "@hooks/useTurno";
 import { LoginScreen } from "@pantallas/auth/LoginScreen";
+import { RegistroScreen } from "@pantallas/auth/RegistroScreen";
+import { MapaScreen } from "@pantallas/comunes/MapaScreen";
+import { HistorialScreen } from "@pantallas/pasajero/HistorialScreen";
 import { InicioScreen } from "@pantallas/pasajero/InicioScreen";
 import { PagarScreen } from "@pantallas/pasajero/PagarScreen";
+import { RecargarScreen } from "@pantallas/pasajero/RecargarScreen";
 import { CobrarScreen } from "@pantallas/recolector/CobrarScreen";
-import type { AuthStackParams, PasajeroTabsParams, RecolectorTabsParams } from "./types";
+import { CobrosHoyScreen } from "@pantallas/recolector/CobrosHoyScreen";
+import { MiLineaScreen } from "@pantallas/recolector/MiLineaScreen";
+import type { AuthStackParams, PasajeroStackParams, PasajeroTabsParams, RecolectorTabsParams } from "./types";
 
 const AuthStack = createNativeStackNavigator<AuthStackParams>();
+const PasajeroStack = createNativeStackNavigator<PasajeroStackParams>();
 const PasajeroTabs = createBottomTabNavigator<PasajeroTabsParams>();
 const RecolectorTabs = createBottomTabNavigator<RecolectorTabsParams>();
 
+type NombreIcono = keyof typeof Ionicons.glyphMap;
+const ICONOS: Record<string, [NombreIcono, NombreIcono]> = {
+  Inicio: ["home", "home-outline"],
+  Pagar: ["phone-portrait", "phone-portrait-outline"],
+  Historial: ["time", "time-outline"],
+  Cobrar: ["scan-circle", "scan-circle-outline"],
+  CobrosHoy: ["receipt", "receipt-outline"],
+  MiLinea: ["bus", "bus-outline"],
+  Mapa: ["map", "map-outline"],
+};
+
+const opcionesTabs = ({ route }: { route: { name: string } }): BottomTabNavigationOptions => ({
+  headerShown: false,
+  tabBarActiveTintColor: colors.primario,
+  tabBarInactiveTintColor: colors.textoSuave,
+  tabBarLabelStyle: { fontWeight: "600" },
+  tabBarStyle: { borderTopColor: colors.borde },
+  tabBarIcon: ({ focused, color, size }) => (
+    <Ionicons name={ICONOS[route.name]?.[focused ? 0 : 1] ?? "ellipse"} color={color} size={size} />
+  ),
+});
+
 // Navegación separada por rol: cada modo tiene su propio árbol.
-function PasajeroNavigator() {
+function PasajeroTabsNavigator() {
   return (
-    <PasajeroTabs.Navigator screenOptions={{ headerShown: false }}>
+    <PasajeroTabs.Navigator screenOptions={opcionesTabs}>
       <PasajeroTabs.Screen name="Inicio" component={InicioScreen} />
       <PasajeroTabs.Screen name="Pagar" component={PagarScreen} />
+      <PasajeroTabs.Screen name="Historial" component={HistorialScreen} />
+      <PasajeroTabs.Screen name="Mapa" component={MapaScreen} />
     </PasajeroTabs.Navigator>
   );
 }
 
+function PasajeroNavigator() {
+  return (
+    <PasajeroStack.Navigator screenOptions={{ headerShown: false }}>
+      <PasajeroStack.Screen name="Tabs" component={PasajeroTabsNavigator} />
+      <PasajeroStack.Screen name="Recargar" component={RecargarScreen} options={{ animation: "slide_from_bottom" }} />
+    </PasajeroStack.Navigator>
+  );
+}
+
+// El turno envuelve las pestañas: la ubicación se sigue enviando al cambiar de pantalla.
 function RecolectorNavigator() {
   return (
-    <RecolectorTabs.Navigator screenOptions={{ headerShown: false }}>
-      <RecolectorTabs.Screen name="Cobrar" component={CobrarScreen} />
-    </RecolectorTabs.Navigator>
+    <TurnoProvider>
+      <RecolectorTabs.Navigator screenOptions={opcionesTabs}>
+        <RecolectorTabs.Screen name="Cobrar" component={CobrarScreen} />
+        <RecolectorTabs.Screen name="CobrosHoy" component={CobrosHoyScreen} options={{ title: "Cobros" }} />
+        <RecolectorTabs.Screen name="MiLinea" component={MiLineaScreen} options={{ title: "Mi línea" }} />
+        <RecolectorTabs.Screen name="Mapa" component={MapaScreen} />
+      </RecolectorTabs.Navigator>
+    </TurnoProvider>
   );
 }
 
@@ -60,6 +109,7 @@ export function RootNavigator() {
       {!sesion ? (
         <AuthStack.Navigator screenOptions={{ headerShown: false }}>
           <AuthStack.Screen name="Login" component={LoginScreen} />
+          <AuthStack.Screen name="Registro" component={RegistroScreen} />
         </AuthStack.Navigator>
       ) : sesion.usuario.rol === "recolector" ? (
         <RecolectorNavigator />
