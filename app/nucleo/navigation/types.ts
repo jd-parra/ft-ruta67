@@ -3,10 +3,10 @@ import type { CompositeNavigationProp, NavigatorScreenParams } from "@react-navi
 import type { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 export type AuthStackParams = { Login: undefined; Registro: undefined };
-export type PasajeroTabsParams = { Inicio: undefined; Pagar: undefined; Historial: undefined };
+export type PasajeroTabsParams = { Inicio: undefined; Pagar: undefined; Historial: undefined; Mapa: undefined };
 // Recargar se abre encima de las pestañas.
 export type PasajeroStackParams = { Tabs: NavigatorScreenParams<PasajeroTabsParams>; Recargar: undefined };
-export type RecolectorTabsParams = { Cobrar: undefined; CobrosHoy: undefined; MiLinea: undefined };
+export type RecolectorTabsParams = { Cobrar: undefined; CobrosHoy: undefined; MiLinea: undefined; Mapa: undefined };
 
 export type AuthNav = NativeStackNavigationProp<AuthStackParams>;
 export type PasajeroNav = CompositeNavigationProp<

@@ -7,8 +7,10 @@ import { AppText } from "@componentes/atoms/AppText";
 import { Boton } from "@componentes/atoms/Boton";
 import { useAuth } from "@nucleo/auth/AuthContext";
 import { colors } from "@nucleo/theme";
+import { TurnoProvider } from "@hooks/useTurno";
 import { LoginScreen } from "@pantallas/auth/LoginScreen";
 import { RegistroScreen } from "@pantallas/auth/RegistroScreen";
+import { MapaScreen } from "@pantallas/comunes/MapaScreen";
 import { HistorialScreen } from "@pantallas/pasajero/HistorialScreen";
 import { InicioScreen } from "@pantallas/pasajero/InicioScreen";
 import { PagarScreen } from "@pantallas/pasajero/PagarScreen";
@@ -16,7 +18,6 @@ import { RecargarScreen } from "@pantallas/pasajero/RecargarScreen";
 import { CobrarScreen } from "@pantallas/recolector/CobrarScreen";
 import { CobrosHoyScreen } from "@pantallas/recolector/CobrosHoyScreen";
 import { MiLineaScreen } from "@pantallas/recolector/MiLineaScreen";
-import { TurnoProvider } from "@hooks/useTurno";
 import type { AuthStackParams, PasajeroStackParams, PasajeroTabsParams, RecolectorTabsParams } from "./types";
 
 const AuthStack = createNativeStackNavigator<AuthStackParams>();
@@ -32,6 +33,7 @@ const ICONOS: Record<string, [NombreIcono, NombreIcono]> = {
   Cobrar: ["scan-circle", "scan-circle-outline"],
   CobrosHoy: ["receipt", "receipt-outline"],
   MiLinea: ["bus", "bus-outline"],
+  Mapa: ["map", "map-outline"],
 };
 
 const opcionesTabs = ({ route }: { route: { name: string } }): BottomTabNavigationOptions => ({
@@ -52,6 +54,7 @@ function PasajeroTabsNavigator() {
       <PasajeroTabs.Screen name="Inicio" component={InicioScreen} />
       <PasajeroTabs.Screen name="Pagar" component={PagarScreen} />
       <PasajeroTabs.Screen name="Historial" component={HistorialScreen} />
+      <PasajeroTabs.Screen name="Mapa" component={MapaScreen} />
     </PasajeroTabs.Navigator>
   );
 }
@@ -73,6 +76,7 @@ function RecolectorNavigator() {
         <RecolectorTabs.Screen name="Cobrar" component={CobrarScreen} />
         <RecolectorTabs.Screen name="CobrosHoy" component={CobrosHoyScreen} options={{ title: "Cobros" }} />
         <RecolectorTabs.Screen name="MiLinea" component={MiLineaScreen} options={{ title: "Mi línea" }} />
+        <RecolectorTabs.Screen name="Mapa" component={MapaScreen} />
       </RecolectorTabs.Navigator>
     </TurnoProvider>
   );

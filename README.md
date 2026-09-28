@@ -5,9 +5,9 @@ Pago de pasaje por NFC/QR en Mérida, Venezuela. Fuente de verdad: `CONTRATO.md`
 ```
 /app            app Expo (dev build), un solo binario con modo pasajero y modo recolector
   /nucleo       NFC/HCE, boletos, almacén local, sync, api, auth, navegación  (Andy)
-  /pantallas    pasajero/, recolector/, auth/                                   (Jose)
+  /pantallas    pasajero/, recolector/, comunes/, auth/                         (Jose)
   /componentes  Atomic Design: atoms, molecules, organisms, templates
-  /hooks        useBilletera, useCobrador, usePagoHce, useTurno
+  /hooks        useBilletera, useCobrador, usePagoHce, useTurno, useUnidadesMapa
 /backend        Node + Express + Socket.IO + PostgreSQL                         (Juan)
 /panel-central  React + Vite                                                    (Jose)
 /shared         boleto.js, tarifa.js, codigos.js, dev-keys.json
