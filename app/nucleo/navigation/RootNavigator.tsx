@@ -14,6 +14,9 @@ import { InicioScreen } from "@pantallas/pasajero/InicioScreen";
 import { PagarScreen } from "@pantallas/pasajero/PagarScreen";
 import { RecargarScreen } from "@pantallas/pasajero/RecargarScreen";
 import { CobrarScreen } from "@pantallas/recolector/CobrarScreen";
+import { CobrosHoyScreen } from "@pantallas/recolector/CobrosHoyScreen";
+import { MiLineaScreen } from "@pantallas/recolector/MiLineaScreen";
+import { TurnoProvider } from "@hooks/useTurno";
 import type { AuthStackParams, PasajeroStackParams, PasajeroTabsParams, RecolectorTabsParams } from "./types";
 
 const AuthStack = createNativeStackNavigator<AuthStackParams>();
@@ -27,6 +30,8 @@ const ICONOS: Record<string, [NombreIcono, NombreIcono]> = {
   Pagar: ["phone-portrait", "phone-portrait-outline"],
   Historial: ["time", "time-outline"],
   Cobrar: ["scan-circle", "scan-circle-outline"],
+  CobrosHoy: ["receipt", "receipt-outline"],
+  MiLinea: ["bus", "bus-outline"],
 };
 
 const opcionesTabs = ({ route }: { route: { name: string } }): BottomTabNavigationOptions => ({
@@ -60,11 +65,16 @@ function PasajeroNavigator() {
   );
 }
 
+// El turno envuelve las pestañas: la ubicación se sigue enviando al cambiar de pantalla.
 function RecolectorNavigator() {
   return (
-    <RecolectorTabs.Navigator screenOptions={opcionesTabs}>
-      <RecolectorTabs.Screen name="Cobrar" component={CobrarScreen} />
-    </RecolectorTabs.Navigator>
+    <TurnoProvider>
+      <RecolectorTabs.Navigator screenOptions={opcionesTabs}>
+        <RecolectorTabs.Screen name="Cobrar" component={CobrarScreen} />
+        <RecolectorTabs.Screen name="CobrosHoy" component={CobrosHoyScreen} options={{ title: "Cobros" }} />
+        <RecolectorTabs.Screen name="MiLinea" component={MiLineaScreen} options={{ title: "Mi línea" }} />
+      </RecolectorTabs.Navigator>
+    </TurnoProvider>
   );
 }
 

@@ -13,6 +13,9 @@
       "@componentes/*": [
         "./componentes/*"
       ],
+      "@hooks/*": [
+        "./hooks/*"
+      ],
       "@shared/*": [
         "../shared/*"
       ]

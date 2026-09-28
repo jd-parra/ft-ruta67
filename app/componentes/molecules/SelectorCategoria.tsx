@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@componentes/atoms/AppText";
+import { IconoCirculo } from "@componentes/atoms/IconoCirculo";
 import { CATEGORIAS } from "@componentes/formato";
 import { colors, radius } from "@nucleo/theme";
 import type { Categoria } from "@nucleo/types/auth";
@@ -18,7 +19,7 @@ export function SelectorCategoria({ valor, onChange }: Props) {
     <View style={styles.lista} accessibilityRole="radiogroup">
       {ORDEN.map((c) => {
         const activa = c === valor;
-        const { nombre, emoji, detalle } = CATEGORIAS[c];
+        const { nombre, icono, detalle } = CATEGORIAS[c];
         return (
           <Pressable
             key={c}
@@ -27,7 +28,7 @@ export function SelectorCategoria({ valor, onChange }: Props) {
             accessibilityState={{ checked: activa }}
             style={[styles.opcion, activa && styles.activa]}
           >
-            <AppText style={styles.emoji}>{emoji}</AppText>
+            <IconoCirculo nombre={icono} fondo={activa ? colors.blanco : colors.primarioClaro} />
             <View style={styles.textos}>
               <AppText style={styles.nombre}>{nombre}</AppText>
               <AppText variant="etiqueta">{detalle}</AppText>
@@ -57,7 +58,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.blanco,
   },
   activa: { borderColor: colors.primario, backgroundColor: colors.primarioClaro },
-  emoji: { fontSize: 24 },
   textos: { flex: 1, gap: 2 },
   nombre: { fontWeight: "600" },
 });

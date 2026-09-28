@@ -21,6 +21,12 @@
         {
           "nfcPermission": "Pasaje usa NFC para pagar y cobrar boletos"
         }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Pasaje usa tu ubicación para mostrar tu unidad en el mapa mientras estás en turno"
+        }
       ]
     ],
     "extra": {

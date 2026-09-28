@@ -30,8 +30,9 @@ export function TarjetaSaldo({ billetera }: { billetera: Billetera }) {
       </View>
 
       <View style={styles.boletos}>
+        <Ionicons name="ticket-outline" size={14} color={colors.blanco} />
         <AppText style={styles.boletosTexto}>
-          🎫 {boletosActivos} {boletosActivos === 1 ? "boleto listo" : "boletos listos"}
+          {boletosActivos} {boletosActivos === 1 ? "boleto listo" : "boletos listos"}
         </AppText>
       </View>
     </View>
@@ -63,6 +64,9 @@ const styles = StyleSheet.create({
   datoFila: { flexDirection: "row", alignItems: "center", gap: 4 },
   datoValor: { color: colors.blanco, fontWeight: "700", fontSize: 16 },
   boletos: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     alignSelf: "flex-start",
     marginTop: 16,
     backgroundColor: "rgba(255,255,255,0.18)",

@@ -6,7 +6,7 @@ export type AuthStackParams = { Login: undefined; Registro: undefined };
 export type PasajeroTabsParams = { Inicio: undefined; Pagar: undefined; Historial: undefined };
 // Recargar se abre encima de las pestañas.
 export type PasajeroStackParams = { Tabs: NavigatorScreenParams<PasajeroTabsParams>; Recargar: undefined };
-export type RecolectorTabsParams = { Cobrar: undefined };
+export type RecolectorTabsParams = { Cobrar: undefined; CobrosHoy: undefined; MiLinea: undefined };
 
 export type AuthNav = NativeStackNavigationProp<AuthStackParams>;
 export type PasajeroNav = CompositeNavigationProp<

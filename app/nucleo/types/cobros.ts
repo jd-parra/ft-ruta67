@@ -18,3 +18,28 @@ export interface ResultadoSync {
   codigo?: string;
   cobro?: { pasajeroNombre: string };
 }
+
+// Cobro ya registrado en el backend (sección 5)
+export interface Cobro {
+  id: string;
+  bid: string;
+  pasajeroNombre: string;
+  categoriaAplicada: Categoria;
+  lineaCodigo: number;
+  tramoCodigo: number;
+  tramoNombre: string;
+  unidadCodigo: number;
+  monto: number;
+  metodo: "nfc" | "qr";
+  ocurridoEn: string;
+  sincronizadoEn: string;
+  confirmadoPor: ("recolector" | "pasajero")[];
+  estado: "ok" | "conflicto";
+}
+
+// GET /recolector/cobros?desde= (sección 6.3)
+export interface CobrosDelDia {
+  total: number;
+  cantidad: number;
+  cobros: Cobro[];
+}

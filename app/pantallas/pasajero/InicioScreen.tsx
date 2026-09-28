@@ -12,7 +12,7 @@ import { Pantalla } from "@componentes/templates/Pantalla";
 import { useAuth } from "@nucleo/auth/AuthContext";
 import type { PasajeroNav } from "@nucleo/navigation/types";
 import { colors, radius } from "@nucleo/theme";
-import { useBilletera } from "./useBilletera";
+import { useBilletera } from "@hooks/useBilletera";
 
 /** Inicio del pasajero (contrato sección 14): saldo, viajes estimados, boletos listos y avisos. */
 export function InicioScreen() {
@@ -35,8 +35,9 @@ export function InicioScreen() {
       }
     >
       <View style={styles.insignia}>
+        <Ionicons name={CATEGORIAS[usuario.categoria].icono} size={14} color={colors.primarioOscuro} />
         <AppText style={styles.insigniaTexto}>
-          {CATEGORIAS[usuario.categoria].emoji} {CATEGORIAS[usuario.categoria].nombre}
+          {CATEGORIAS[usuario.categoria].nombre}
           {pendiente ? " · pendiente de verificación" : ""}
         </AppText>
       </View>
@@ -91,6 +92,9 @@ export function InicioScreen() {
 const styles = StyleSheet.create({
   salir: { padding: 8, borderRadius: radius.pill, backgroundColor: colors.primarioClaro },
   insignia: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
     alignSelf: "flex-start",
     marginTop: -12,
     backgroundColor: colors.primarioClaro,

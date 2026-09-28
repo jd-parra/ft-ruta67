@@ -7,7 +7,7 @@ export const colors = {
   exito: "#16A34A",
   error: "#DC2626",
   fondo: "#FAFAFC",
-  texto: "#1F1B2E",
+  texto: "#3A3550", // contrato: #1F1B2E; se aclaró para que no se vea negro puro
   blanco: "#FFFFFF",
   // Neutros para texto secundario y bordes suaves.
   textoSuave: "#6B6880",

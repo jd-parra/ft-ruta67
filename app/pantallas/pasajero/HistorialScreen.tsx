@@ -1,12 +1,11 @@
-import { useCallback, useState, type ReactNode } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { useCallback, useState } from "react";
+import { StyleSheet, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import type { Ionicons } from "@expo/vector-icons";
-import { AppText } from "@componentes/atoms/AppText";
 import { Boton } from "@componentes/atoms/Boton";
-import { IconoCirculo } from "@componentes/atoms/IconoCirculo";
 import { Tarjeta } from "@componentes/atoms/Tarjeta";
 import { formatearBs, formatearFechaHora } from "@componentes/formato";
+import { EstadoCargando, EstadoVacio } from "@componentes/molecules/EstadoVacio";
 import { FilaLista } from "@componentes/molecules/FilaLista";
 import { Segmentado } from "@componentes/molecules/Segmentado";
 import { Pantalla } from "@componentes/templates/Pantalla";
@@ -84,9 +83,9 @@ export function HistorialScreen() {
 }
 
 function ListaViajes({ viajes, lineas }: { viajes: ReciboLocal[] | null; lineas: Linea[] }) {
-  if (!viajes) return <Cargando />;
+  if (!viajes) return <EstadoCargando />;
   if (!viajes.length) {
-    return <Vacio icono="bus-outline" titulo="Aún no tienes viajes" mensaje="Cuando pagues un pasaje aparecerá aquí, aunque no tengas internet." />;
+    return <EstadoVacio icono="bus-outline" titulo="Aún no tienes viajes" mensaje="Cuando pagues un pasaje aparecerá aquí, aunque no tengas internet." />;
   }
   return (
     <Tarjeta style={styles.lista}>
@@ -112,14 +111,14 @@ function ListaViajes({ viajes, lineas }: { viajes: ReciboLocal[] | null; lineas:
 function ListaMovimientos({ movimientos, error, onReintentar }: { movimientos: Movimiento[] | null; error: string | null; onReintentar: () => void }) {
   if (error && !movimientos) {
     return (
-      <Vacio icono="cloud-offline-outline" titulo="Sin conexión" mensaje={error}>
+      <EstadoVacio icono="cloud-offline-outline" titulo="Sin conexión" mensaje={error}>
         <Boton titulo="Reintentar" secundario icono="refresh" onPress={onReintentar} />
-      </Vacio>
+      </EstadoVacio>
     );
   }
-  if (!movimientos) return <Cargando />;
+  if (!movimientos) return <EstadoCargando />;
   if (!movimientos.length) {
-    return <Vacio icono="receipt-outline" titulo="Sin movimientos" mensaje="Tus recargas y pagos aparecerán aquí." />;
+    return <EstadoVacio icono="receipt-outline" titulo="Sin movimientos" mensaje="Tus recargas y pagos aparecerán aquí." />;
   }
   return (
     <Tarjeta style={styles.lista}>
@@ -146,28 +145,7 @@ function ListaMovimientos({ movimientos, error, onReintentar }: { movimientos: M
   );
 }
 
-function Cargando() {
-  return (
-    <View style={styles.vacio}>
-      <ActivityIndicator color={colors.primario} />
-    </View>
-  );
-}
-
-function Vacio({ icono, titulo, mensaje, children }: { icono: keyof typeof Ionicons.glyphMap; titulo: string; mensaje: string; children?: ReactNode }) {
-  return (
-    <View style={styles.vacio}>
-      <IconoCirculo nombre={icono} tamano={64} />
-      <AppText variant="subtitulo">{titulo}</AppText>
-      <AppText style={styles.mensajeVacio}>{mensaje}</AppText>
-      {children}
-    </View>
-  );
-}
-
 const styles = StyleSheet.create({
   lista: { paddingVertical: 4 },
   separador: { borderTopWidth: 1, borderTopColor: colors.borde },
-  vacio: { alignItems: "center", gap: 10, paddingVertical: 48, paddingHorizontal: 24 },
-  mensajeVacio: { textAlign: "center", color: colors.textoSuave },
 });

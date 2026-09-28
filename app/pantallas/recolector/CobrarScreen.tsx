@@ -1,62 +1,87 @@
-import { ScrollView, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { AppText } from "@componentes/atoms/AppText";
-import { Boton } from "@componentes/atoms/Boton";
+import { BannerAviso } from "@componentes/molecules/BannerAviso";
+import { CirculoNfc } from "@componentes/molecules/CirculoNfc";
 import { ContadorDia } from "@componentes/molecules/ContadorDia";
+import { EstadoCargando } from "@componentes/molecules/EstadoVacio";
+import { InterruptorTurno } from "@componentes/molecules/InterruptorTurno";
 import { SelectorTramo } from "@componentes/molecules/SelectorTramo";
 import { TarjetaResultado } from "@componentes/molecules/TarjetaResultado";
-import { useCobrador } from "@nucleo/nfc/useCobrador";
-import { useAuth } from "@nucleo/auth/AuthContext";
+import { Pantalla } from "@componentes/templates/Pantalla";
+import { useCobrador } from "@hooks/useCobrador";
+import { useTurno } from "@hooks/useTurno";
 import { colors } from "@nucleo/theme";
 
+// Diseño de Jose sobre la lógica de Andy (useCobrador): el lector escucha mientras esta pantalla está abierta.
 export function CobrarScreen() {
-  const { logout } = useAuth();
   const c = useCobrador();
+  const turno = useTurno();
+
+  const estado =
+    c.nfc === false
+      ? { icono: "close" as const, titulo: "NFC no disponible", detalle: "Enciende el NFC en los ajustes del teléfono para cobrar." }
+      : !c.paquete
+        ? { icono: "cloud-offline-outline" as const, titulo: "Sin datos de la línea", detalle: "Conéctate a internet para descargarlos." }
+        : c.escuchando
+          ? { icono: "scan-outline" as const, titulo: "Acerca el teléfono", detalle: "El cobro se hace solo al tocar el teléfono del pasajero" }
+          : { icono: "hourglass-outline" as const, titulo: "Preparando…", detalle: "Activando el lector NFC" };
 
   return (
-    <View style={styles.root}>
-      <ScrollView contentContainerStyle={styles.contenido}>
-        <AppText variant="titulo">Cobrar</AppText>
+    <Pantalla
+      titulo="Cobrar"
+      subtitulo={c.paquete ? `${c.paquete.linea.nombre} · ${c.paquete.unidad.placa}` : undefined}
+      pie={<ContadorDia cantidad={c.resumen.cantidad} total={c.resumen.total} />}
+    >
+      <InterruptorTurno
+        enTurno={turno.enTurno}
+        activando={turno.activando}
+        error={turno.error}
+        ultimoEnvio={turno.ultimoEnvio}
+        onCambiar={turno.cambiar}
+      />
 
-        {!c.paquete ? (
-          <AppText>{c.cargando ? "Cargando…" : "Sin paquete: conéctate a internet para descargar tu línea."}</AppText>
-        ) : (
+      {c.desactualizado && (
+        <BannerAviso tono="aviso" icono="cloud-offline-outline" titulo="Sin conexión" mensaje="Cobrando con los últimos datos guardados de tu línea." />
+      )}
+
+      {c.paquete ? (
+        <View style={styles.seccion}>
+          <AppText variant="etiqueta">Tramo a cobrar</AppText>
+          <SelectorTramo tramos={c.paquete.linea.tramos} modo={c.modo} onChange={c.setModo} />
+        </View>
+      ) : (
+        c.cargando && <EstadoCargando />
+      )}
+
+      {c.tarjeta ? (
+        <TarjetaResultado
+          tarjeta={c.tarjeta}
+          tramos={c.paquete?.linea.tramos ?? []}
+          eligiendo={c.corrigiendo && !c.procesando}
+          procesando={c.procesando}
+          onCorregir={c.elegirCorreccion}
+          onElegirTramo={(tramoCodigo) => void c.corregirTarjeta({ tramoCodigo })}
+          onCancelarCorreccion={c.cancelarCorreccion}
+          onComoGeneral={() => void c.corregirTarjeta({ comoGeneral: true })}
+        />
+      ) : (
+        !c.cargando && (
           <>
-            <AppText>{c.paquete.linea.nombre} · unidad {c.paquete.unidad.placa}</AppText>
-            {c.desactualizado && <AppText variant="etiqueta">Sin conexión: usando el último paquete guardado</AppText>}
-            <SelectorTramo tramos={c.paquete.linea.tramos} modo={c.modo} onChange={c.setModo} />
+            <CirculoNfc activo={c.escuchando} icono={estado.icono} />
+            <View style={styles.textos}>
+              <AppText variant="titulo" style={styles.centro}>{estado.titulo}</AppText>
+              <AppText style={[styles.centro, styles.suave]}>{estado.detalle}</AppText>
+            </View>
           </>
-        )}
-
-        {c.nfc === false && <AppText style={{ color: colors.error }}>El NFC está apagado o no está disponible</AppText>}
-
-        {c.tarjeta ? (
-          <TarjetaResultado
-            tarjeta={c.tarjeta}
-            tramos={c.paquete?.linea.tramos ?? []}
-            eligiendo={c.corrigiendo && !c.procesando}
-            procesando={c.procesando}
-            onCorregir={c.elegirCorreccion}
-            onElegirTramo={(tramoCodigo) => void c.corregirTarjeta({ tramoCodigo })}
-            onCancelarCorreccion={c.cancelarCorreccion}
-            onComoGeneral={() => void c.corregirTarjeta({ comoGeneral: true })}
-          />
-        ) : (
-          c.escuchando && <AppText style={styles.escuchando}>📡 Acerca el teléfono del pasajero</AppText>
-        )}
-
-        <Boton titulo="Cerrar sesión" secundario onPress={() => void logout()} />
-      </ScrollView>
-
-      <View style={styles.pie}>
-        <ContadorDia cantidad={c.resumen.cantidad} total={c.resumen.total} />
-      </View>
-    </View>
+        )
+      )}
+    </Pantalla>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: colors.fondo },
-  contenido: { padding: 24, paddingTop: 48, gap: 12 },
-  escuchando: { fontSize: 20, textAlign: "center", paddingVertical: 32, color: colors.primarioOscuro },
-  pie: { padding: 16 },
+  seccion: { gap: 6 },
+  textos: { gap: 6, marginTop: -8 },
+  centro: { textAlign: "center" },
+  suave: { color: colors.textoSuave },
 });

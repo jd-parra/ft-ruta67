@@ -11,8 +11,8 @@ Este documento resume qué cambió en la app, cómo estaba antes y qué hace fal
 | Pantalla | Antes | Ahora |
 |---|---|---|
 | **Login** | Formulario básico. Los errores salían en un `Alert` | Rediseñado: logo, campos con icono, botón para ver la clave, error dentro de la pantalla, enlace a **Registro** |
-| **Registro** | ❌ No existía | Nombre, teléfono, clave y categoría (🧑 General · 🎓 Estudiante · 👴 Exonerado). Si no es general: aviso **"pendiente de verificación"**. Al registrarse entra directo |
-| **Inicio** | Placeholder (nombre + cerrar sesión) | Saludo con categoría, tarjeta de saldo (disponible, reservado, **≈ N viajes**, **🎫 N boletos listos**), accesos rápidos y avisos. Se actualiza al deslizar hacia abajo |
+| **Registro** | ❌ No existía | Nombre, teléfono, clave y categoría (General · Estudiante · Exonerado, cada una con su icono). Si no es general: aviso **"pendiente de verificación"**. Al registrarse entra directo |
+| **Inicio** | Placeholder (nombre + cerrar sesión) | Saludo con categoría, tarjeta de saldo (disponible, reservado, **≈ N viajes**, **N boletos listos**), accesos rápidos y avisos. Se actualiza al deslizar hacia abajo |
 | **Recargar** | ❌ No existía | Montos rápidos 500 / 1.000 / 2.000 Bs, campo libre (acepta `1.500,50`), máximo 100.000 Bs, pantalla de **"¡Recarga confirmada!"**. Usa `POST /recargas` |
 | **Historial** | ❌ No existía | Dos pestañas: **Viajes** (recibos guardados en el teléfono, con nombre de línea y tramo) y **Movimientos** (`GET /movimientos`) |
 | **Pagar** | Versión mínima de Andy para probar el protocolo | **Solo diseño nuevo**: círculo con ondas animadas, mensaje según el estado y tarjeta de "¡Pago registrado!". **La lógica (`usePagoHce`) no se tocó** |
@@ -111,7 +111,7 @@ En un teléfono sin NFC, **Pagar** muestra *"Este teléfono no puede pagar por N
 | `pantallas/auth/RegistroScreen.tsx` | Registro de pasajeros |
 | `pantallas/pasajero/RecargarScreen.tsx` | Recargar saldo |
 | `pantallas/pasajero/HistorialScreen.tsx` | Viajes + movimientos |
-| `pantallas/pasajero/useBilletera.ts` | Carga la billetera cada vez que la pantalla recibe el foco |
+| `hooks/useBilletera.ts` | Carga la billetera cada vez que la pantalla recibe el foco |
 | `nucleo/api/pasajeroApi.ts` | `obtenerBilletera`, `recargar`, `listarMovimientos`, `obtenerLineas`, `listarViajes`. Cambia sola entre mocks y backend |
 | `nucleo/api/errores.ts` | `mensajeDeError`: muestra el `mensaje` del backend tal cual (contrato §4) |
 | `nucleo/mocks/pasajero.ts` | Mocks con la forma de `bk-ruta67/mocks`. Guardan estado en memoria (recargar suma saldo) |
@@ -131,7 +131,7 @@ En un teléfono sin NFC, **Pagar** muestra *"Este teléfono no puede pagar por N
 | `nucleo/theme/index.ts` | + colores (`textoSuave`, `borde`, `exitoClaro`, `errorClaro`, `aviso`, `avisoClaro`), `radius.lg`, `spacing.xxl`, `sombra` |
 | `componentes/atoms/AppText.tsx` | + variantes `subtitulo` y `cifra` |
 | `componentes/atoms/Boton.tsx` | + props `icono` y `cargando` (opcionales) |
-| `componentes/molecules/ContadorDia.tsx` | `formatearBs` se movió a `componentes/formato.ts`. Aquí se reexporta, así que los imports existentes siguen funcionando |
+| `componentes/molecules/ContadorDia.tsx` | `formatearBs` se movió a `componentes/formato.ts` |
 | `package.json` | + `@expo/vector-icons` (solo JavaScript; usa `expo-font`, que ya está en el build) |
 | `app.json` | `projectId` de EAS (`josedev2004s-team`) y permiso `NFC`. **Hace falta** para que el resto del equipo compile en el mismo proyecto EAS |
 | `.gitignore` (raíz) | `android/` → `/app/android/` (ver §4) |
@@ -143,7 +143,7 @@ En un teléfono sin NFC, **Pagar** muestra *"Este teléfono no puede pagar por N
 - [ ] Andy sube `app/modules/pasaje-hce/android/` y se compila un dev build nuevo.
 - [ ] Probar Pagar y Cobrar entre dos teléfonos con NFC.
 - [ ] Invitar a Andy y Juan a `josedev2004s-team` en expo.dev (rol *Developer*) para que puedan descargar y compilar.
-- [ ] "🎫 N boletos listos" usa `billetera.boletosActivos` del backend. Cuando Andy conecte la descarga de boletos, puede pasar a contar los guardados en el teléfono.
+- [ ] "N boletos listos" usa `billetera.boletosActivos` del backend. Cuando Andy conecte la descarga de boletos, puede pasar a contar los guardados en el teléfono.
 - [ ] Siguientes pantallas del contrato: Mapa (pasajero) y Mi línea, Cobros de hoy, Mapa y "En turno" (recolector).
 
 ---

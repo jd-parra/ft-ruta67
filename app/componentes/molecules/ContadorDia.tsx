@@ -3,9 +3,6 @@ import { AppText } from "@componentes/atoms/AppText";
 import { formatearBs } from "@componentes/formato";
 import { colors, radius } from "@nucleo/theme";
 
-// Se reexporta para no romper los imports existentes (TarjetaResultado).
-export { formatearBs };
-
 export function ContadorDia({ cantidad, total }: { cantidad: number; total: number }) {
   return (
     <View style={styles.caja}>

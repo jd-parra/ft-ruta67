@@ -1,3 +1,4 @@
+import type { Ionicons } from "@expo/vector-icons";
 import type { Categoria } from "@nucleo/types/auth";
 
 export const formatearBs = (centimos: number) =>
@@ -24,8 +25,8 @@ export function bsACentimos(texto: string): number | null {
   return Math.round(Number(normal) * 100);
 }
 
-export const CATEGORIAS: Record<Categoria, { nombre: string; emoji: string; detalle: string }> = {
-  general: { nombre: "General", emoji: "🧑", detalle: "Pasaje completo" },
-  estudiante: { nombre: "Estudiante", emoji: "🎓", detalle: "50 % de descuento con carnet" },
-  exonerado: { nombre: "Exonerado", emoji: "👴", detalle: "Adultos mayores y personas con discapacidad" },
+export const CATEGORIAS: Record<Categoria, { nombre: string; icono: keyof typeof Ionicons.glyphMap; detalle: string }> = {
+  general: { nombre: "General", icono: "person-outline", detalle: "Pasaje completo" },
+  estudiante: { nombre: "Estudiante", icono: "school-outline", detalle: "50 % de descuento con carnet" },
+  exonerado: { nombre: "Exonerado", icono: "accessibility-outline", detalle: "Adultos mayores y personas con discapacidad" },
 };

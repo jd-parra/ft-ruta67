@@ -16,7 +16,7 @@ import { useAuth } from "@nucleo/auth/AuthContext";
 import type { PasajeroNav } from "@nucleo/navigation/types";
 import { colors } from "@nucleo/theme";
 import type { Billetera } from "@nucleo/types/billetera";
-import { useBilletera } from "./useBilletera";
+import { useBilletera } from "@hooks/useBilletera";
 
 const MONTOS_RAPIDOS = [50000, 100000, 200000]; // 500, 1000 y 2000 Bs en céntimos
 const MAXIMO = 10_000_000; // §19: máximo 100.000,00 Bs por recarga
