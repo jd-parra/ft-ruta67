@@ -1,0 +1,8 @@
+<host-apdu-service xmlns:android="http://schemas.android.com/apk/res/android"
+  android:description="@string/pasaje_hce_descripcion"
+  android:requireDeviceUnlock="false">
+  <!-- AID propietario del protocolo v2 -->
+  <aid-group android:category="other" android:description="@string/pasaje_hce_descripcion">
+    <aid-filter android:name="F0504153450002" />
+  </aid-group>
+</host-apdu-service>

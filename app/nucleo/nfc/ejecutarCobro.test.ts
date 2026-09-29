@@ -5,7 +5,7 @@ import { bytesDeBase64url } from "../boletos/boleto";
 import { ejecutarCobro, type CobroPersistir, type OpcionesCobro } from "./ejecutarCobro";
 import type { PaqueteRecolector } from "../types/paquete";
 
-// Teléfono del pasajero simulado: mismo protocolo que PasajeCardService.kt.
+// Teléfono del pasajero simulado: mismo protocolo que modules/pasaje-hce/.../PasajeHceService.kt.
 function pasajero(o: { boletos: string[]; tramoSugerido?: number; sinPagar?: boolean; cortarAntesDeRecibo?: boolean }) {
   const recibos: number[][] = [];
   let seleccionado = false;
