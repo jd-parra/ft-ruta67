@@ -46,7 +46,7 @@ export function CobrarScreen() {
 
       {c.paquete ? (
         <View style={styles.seccion}>
-          <AppText variant="etiqueta">Tramo a cobrar</AppText>
+          <AppText variant="etiqueta">Ruta a cobrar</AppText>
           <SelectorTramo tramos={c.paquete.linea.tramos} modo={c.modo} onChange={c.setModo} />
         </View>
       ) : (

@@ -25,7 +25,15 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Pasaje usa tu ubicación para mostrar tu unidad en el mapa mientras estás en turno"
+          "locationWhenInUsePermission": "Pasaje usa tu ubicación para mostrarte en el mapa y, si eres recolector, para mostrar tu unidad mientras estás en turno"
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": false,
+          "recordAudioAndroid": false,
+          "enableBackgroundPlayback": false
         }
       ]
     ],

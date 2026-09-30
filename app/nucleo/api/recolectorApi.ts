@@ -2,7 +2,7 @@ import { USE_MOCKS } from "@nucleo/config";
 import { leerPaquete, guardarPaquete } from "@nucleo/almacen/paquete";
 import { PAQUETE_MOCK } from "@nucleo/mocks/paquete";
 import { cobrosDeHoyMock } from "@nucleo/mocks/recolector";
-import { inicioDelDia } from "@nucleo/tarifas/zonaHoraria";
+import { rangoDelDia } from "@nucleo/tarifas/zonaHoraria";
 import type { CobrosDelDia } from "@nucleo/types/cobros";
 import type { PaqueteRecolector } from "@nucleo/types/paquete";
 import { api } from "./client";
@@ -18,10 +18,10 @@ export async function obtenerPaquete(): Promise<{ paquete: PaqueteRecolector | n
   }
 }
 
-/** GET /recolector/cobros?desde= con el inicio del día en hora de Mérida. Solo lo ya subido. */
-export async function cobrosDeHoy(): Promise<CobrosDelDia> {
+/** GET /recolector/cobros?desde=&hasta= : los cobros ya subidos de un día (hora de Mérida). */
+export async function cobrosDelDia(dia: Date): Promise<CobrosDelDia> {
   if (USE_MOCKS) return cobrosDeHoyMock();
-  return (await api.get<CobrosDelDia>("/recolector/cobros", { params: { desde: inicioDelDia(new Date()) } })).data;
+  return (await api.get<CobrosDelDia>("/recolector/cobros", { params: rangoDelDia(dia) })).data;
 }
 
 /** POST /ubicaciones (cada 30 s mientras está «En turno»). */

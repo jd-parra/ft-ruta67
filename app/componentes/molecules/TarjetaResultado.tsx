@@ -61,7 +61,7 @@ export function TarjetaResultado(p: Props) {
         <AppText variant="etiqueta">Corrigiendo…</AppText>
       ) : p.eligiendo ? (
         <View style={styles.acciones}>
-          <AppText variant="etiqueta">Cobrar de nuevo con otro tramo:</AppText>
+          <AppText variant="etiqueta">Cobrar de nuevo con otra ruta:</AppText>
           {p.tramos
             .filter((t) => t.codigo !== res.tramo.codigo)
             .map((t) => (
@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   tarjeta: { borderWidth: 2, borderRadius: radius.lg, padding: 16, gap: 12, backgroundColor: colors.blanco, ...sombra },
   cabecera: { flexDirection: "row", alignItems: "center", gap: 12 },
   flex: { flex: 1, gap: 2 },
-  monto: { fontSize: 28, fontWeight: "800" },
+  monto: { fontSize: 40, fontWeight: "800", lineHeight: 46 },
   titulo: { fontSize: 17, fontWeight: "600" },
   datos: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   dato: { flexDirection: "row", alignItems: "center", gap: 6 },

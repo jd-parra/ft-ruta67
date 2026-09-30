@@ -7,3 +7,9 @@ export function inicioDelDia(ahora: Date): string {
   local.setUTCHours(0, 0, 0, 0);
   return new Date(local.getTime() - OFFSET_VE_MS).toISOString();
 }
+
+/** Día local completo de `fecha` como rango ISO UTC [desde, hasta) (hasta = 00:00 del día siguiente). */
+export function rangoDelDia(fecha: Date): { desde: string; hasta: string } {
+  const desde = inicioDelDia(fecha);
+  return { desde, hasta: new Date(Date.parse(desde) + 24 * 3600 * 1000).toISOString() };
+}

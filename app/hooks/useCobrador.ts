@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AppState } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { obtenerPaquete } from "@nucleo/api/recolectorApi";
+import { avisarCobro } from "@nucleo/avisos/avisoCobro";
 import { resumenDelDia } from "@nucleo/almacen/colaCobros";
 import { useAuth } from "@nucleo/auth/AuthContext";
 import { conectarSocket } from "@nucleo/realtime/socket";
@@ -135,6 +136,7 @@ export function useCobrador() {
           await espera(500); // evita girar en vacío si NFC falla
           continue;
         }
+        avisarCobro(res.ok);
         refrescarResumen();
         const bid = res.ok ? res.boleto.bid : null;
         const cierre = mostrar({ res, bid, nombre: null, subida: res.ok ? "subiendo" : "ok" });
