@@ -68,3 +68,32 @@ export async function listarRecibos(limite = 50): Promise<ReciboLocal[]> {
     ocurridoEn: f.ocurrido_en as string,
   }));
 }
+
+/** bid de los boletos ya entregados por NFC: no se vuelven a guardar aunque el backend aún no sepa del cobro. */
+export async function bidsConRecibo(): Promise<Set<string>> {
+  const db = await getDb();
+  const filas = await db.getAllAsync<{ bid: string }>(`SELECT bid FROM recibos`);
+  return new Set(filas.map((f) => f.bid));
+}
+
+/** Recibos que aún no llegaron al backend, del más viejo al más nuevo. */
+export async function recibosPendientes(limite: number): Promise<ReciboLocal[]> {
+  const db = await getDb();
+  const filas = await db.getAllAsync<Record<string, string | number>>(
+    `SELECT * FROM recibos WHERE sincronizado = 0 ORDER BY ocurrido_en LIMIT ?`,
+    [limite]
+  );
+  return filas.map((f) => ({
+    bid: f.bid as string,
+    lineaCodigo: f.linea_codigo as number,
+    unidadCodigo: f.unidad_codigo as number,
+    tramoCodigo: f.tramo_codigo as number,
+    monto: f.monto as number,
+    ocurridoEn: f.ocurrido_en as string,
+  }));
+}
+
+export async function marcarRecibosSincronizados(bids: string[]) {
+  const db = await getDb();
+  for (const bid of bids) await db.runAsync(`UPDATE recibos SET sincronizado = 1 WHERE bid = ?`, [bid]);
+}

@@ -89,7 +89,7 @@ function Contenido({ paquete, desactualizado }: { paquete: PaqueteRecolector; de
         <View style={styles.datosUnidad}>
           <Dato icono="bus-outline" texto={`Placa ${unidad.placa}`} />
           <Dato icono="pricetag-outline" texto={`Unidad ${unidad.codigo}`} />
-          <Dato icono="git-branch-outline" texto={`${linea.tramos.length} ${linea.tramos.length === 1 ? "tramo" : "tramos"}`} />
+          <Dato icono="git-branch-outline" texto={`${linea.tramos.length} ${linea.tramos.length === 1 ? "ruta" : "rutas"}`} />
         </View>
       </View>
 
@@ -121,7 +121,7 @@ function Contenido({ paquete, desactualizado }: { paquete: PaqueteRecolector; de
       )}
 
       <View style={styles.seccion}>
-        <AppText variant="subtitulo">Tramos y tarifas</AppText>
+        <AppText variant="subtitulo">Rutas y tarifas</AppText>
         <Tarjeta style={styles.lista}>
           {linea.tramos.map((t, i) => {
             const base = tarifaCompleta(linea, t, tab);

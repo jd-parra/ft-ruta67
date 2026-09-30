@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
 import { AppText } from "@componentes/atoms/AppText";
@@ -8,20 +8,24 @@ import { CATEGORIAS, formatearBs, formatearFechaHora } from "@componentes/format
 import { BannerAviso } from "@componentes/molecules/BannerAviso";
 import { EstadoCargando, EstadoVacio } from "@componentes/molecules/EstadoVacio";
 import { FilaLista } from "@componentes/molecules/FilaLista";
+import { ResumenCobros } from "@componentes/molecules/ResumenCobros";
+import { fechaDe, SelectorDia } from "@componentes/molecules/SelectorDia";
 import { Pantalla } from "@componentes/templates/Pantalla";
 import { cobrosPendientes } from "@nucleo/almacen/colaCobros";
 import { leerPaquete } from "@nucleo/almacen/paquete";
 import { mensajeDeError } from "@nucleo/api/errores";
-import { cobrosDeHoy } from "@nucleo/api/recolectorApi";
+import { cobrosDelDia } from "@nucleo/api/recolectorApi";
 import { sincronizarCobros } from "@nucleo/sync/cobros";
 import { colors, radius } from "@nucleo/theme";
 import type { CobrosDelDia, FilaCobro } from "@nucleo/types/cobros";
 import type { Tramo } from "@nucleo/types/paquete";
 
-const hoy = () => new Date().toLocaleDateString("es-VE", { weekday: "long", day: "numeric", month: "long" });
+const fechaLarga = (diasAtras: number) =>
+  fechaDe(diasAtras).toLocaleDateString("es-VE", { weekday: "long", day: "numeric", month: "long" });
 
-/** Cobros de hoy (contrato sección 14): lo registrado en el backend + lo que sigue en cola_cobros. */
+/** Cobros del día (contrato sección 14): lo registrado en el backend + lo que sigue en cola_cobros. Permite ver días anteriores. */
 export function CobrosHoyScreen() {
+  const [diasAtras, setDiasAtras] = useState(0);
   const [dia, setDia] = useState<CobrosDelDia | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendientes, setPendientes] = useState<FilaCobro[]>([]);
@@ -31,7 +35,7 @@ export function CobrosHoyScreen() {
 
   const cargar = useCallback(async () => {
     // Los pendientes son locales: se muestran aunque no haya conexión.
-    const [d, p, paquete] = await Promise.allSettled([cobrosDeHoy(), cobrosPendientes(), leerPaquete()]);
+    const [d, p, paquete] = await Promise.allSettled([cobrosDelDia(fechaDe(diasAtras)), cobrosPendientes(), leerPaquete()]);
     if (d.status === "fulfilled") {
       setDia(d.value);
       setError(null);
@@ -40,7 +44,12 @@ export function CobrosHoyScreen() {
     }
     if (p.status === "fulfilled") setPendientes(p.value);
     if (paquete.status === "fulfilled" && paquete.value) setTramos(paquete.value.linea.tramos);
-  }, []);
+  }, [diasAtras]);
+
+  // Al cambiar de día se limpia la lista para no mostrar los cobros del día anterior mientras carga.
+  useEffect(() => {
+    setDia(null);
+  }, [diasAtras]);
 
   useFocusEffect(
     useCallback(() => {
@@ -61,30 +70,35 @@ export function CobrosHoyScreen() {
     setSubiendo(false);
   };
 
-  const totalPendiente = pendientes.reduce((s, c) => s + c.monto, 0);
-  const nombreTramo = (codigo: number) => tramos.find((t) => t.codigo === codigo)?.nombre ?? `Tramo ${codigo}`;
+  const esHoy = diasAtras === 0;
+  // Los pendientes son de hoy: todavía no están en el backend.
+  const pendientesVisibles = esHoy ? pendientes : [];
+  const totalPendiente = pendientesVisibles.reduce((s, c) => s + c.monto, 0);
+  const nombreTramo = (codigo: number) => tramos.find((t) => t.codigo === codigo)?.nombre ?? `Ruta ${codigo}`;
 
   return (
-    <Pantalla titulo="Cobros de hoy" subtitulo={hoy()} onRefrescar={() => void refrescar()} refrescando={refrescando}>
+    <Pantalla titulo="Cobros" subtitulo={fechaLarga(diasAtras)} onRefrescar={() => void refrescar()} refrescando={refrescando}>
+      <SelectorDia diasAtras={diasAtras} onChange={setDiasAtras} />
+
       <View style={styles.resumen}>
-        <AppText style={styles.resumenEtiqueta}>Total registrado</AppText>
+        <AppText style={styles.resumenEtiqueta}>{esHoy ? "Total registrado hoy" : "Total registrado"}</AppText>
         <AppText variant="cifra" style={styles.resumenMonto}>{formatearBs(dia?.total ?? 0)}</AppText>
         <AppText style={styles.resumenDetalle}>
           {dia ? `${dia.cantidad} ${dia.cantidad === 1 ? "cobro" : "cobros"}` : "—"}
-          {pendientes.length > 0 ? ` · ${formatearBs(totalPendiente)} sin subir` : ""}
+          {pendientesVisibles.length > 0 ? ` · ${formatearBs(totalPendiente)} sin subir` : ""}
         </AppText>
       </View>
 
-      {pendientes.length > 0 && (
+      {pendientesVisibles.length > 0 && (
         <View style={styles.seccion}>
           <BannerAviso
             tono="aviso"
             icono="cloud-upload-outline"
-            titulo={`${pendientes.length} ${pendientes.length === 1 ? "cobro sin subir" : "cobros sin subir"}`}
+            titulo={`${pendientesVisibles.length} ${pendientesVisibles.length === 1 ? "cobro sin subir" : "cobros sin subir"}`}
             mensaje="Están guardados en el teléfono. Se suben solos al tener conexión, o súbelos ahora."
           />
           <Tarjeta style={styles.lista}>
-            {pendientes.map((c, i) => (
+            {pendientesVisibles.map((c, i) => (
               <View key={c.bid} style={i > 0 && styles.separador}>
                 <FilaLista
                   icono="cloud-upload-outline"
@@ -102,15 +116,17 @@ export function CobrosHoyScreen() {
         </View>
       )}
 
+      {dia && <ResumenCobros cobros={dia.cobros} />}
+
       <View style={styles.seccion}>
         <AppText variant="subtitulo">Registrados</AppText>
-        <ListaCobros dia={dia} error={error} onReintentar={() => void refrescar()} />
+        <ListaCobros dia={dia} error={error} esHoy={esHoy} onReintentar={() => void refrescar()} />
       </View>
     </Pantalla>
   );
 }
 
-function ListaCobros({ dia, error, onReintentar }: { dia: CobrosDelDia | null; error: string | null; onReintentar: () => void }) {
+function ListaCobros({ dia, error, esHoy, onReintentar }: { dia: CobrosDelDia | null; error: string | null; esHoy: boolean; onReintentar: () => void }) {
   if (error && !dia) {
     return (
       <EstadoVacio icono="cloud-offline-outline" titulo="Sin conexión" mensaje={error}>
@@ -120,13 +136,19 @@ function ListaCobros({ dia, error, onReintentar }: { dia: CobrosDelDia | null; e
   }
   if (!dia) return <EstadoCargando />;
   if (!dia.cobros.length) {
-    return <EstadoVacio icono="receipt-outline" titulo="Aún no hay cobros" mensaje="Los pasajes que cobres hoy aparecerán aquí." />;
+    return esHoy ? (
+      <EstadoVacio icono="receipt-outline" titulo="Aún no hay cobros" mensaje="Los pasajes que cobres hoy aparecerán aquí." />
+    ) : (
+      <EstadoVacio icono="receipt-outline" titulo="Sin cobros" mensaje="No registraste cobros ese día." />
+    );
   }
   return (
     <Tarjeta style={styles.lista}>
       {dia.cobros.map((c, i) => {
         const conflicto = c.estado === "conflicto";
         const categoria = CATEGORIAS[c.categoriaAplicada];
+        // §19: el recibo del teléfono del pasajero confirma el cobro.
+        const confirmado = c.confirmadoPor.includes("pasajero");
         return (
           <View key={c.id} style={i > 0 && styles.separador}>
             <FilaLista
@@ -134,10 +156,10 @@ function ListaCobros({ dia, error, onReintentar }: { dia: CobrosDelDia | null; e
               colorIcono={conflicto ? colors.error : undefined}
               fondoIcono={conflicto ? colors.errorClaro : undefined}
               titulo={c.pasajeroNombre}
-              subtitulo={`${c.tramoNombre} · ${formatearFechaHora(c.ocurridoEn)}`}
+              subtitulo={`${categoria.nombre} · ${c.tramoNombre} · ${formatearFechaHora(c.ocurridoEn)}`}
               valor={c.monto === 0 ? "Gratis" : formatearBs(c.monto)}
               colorValor={conflicto ? colors.error : undefined}
-              detalleValor={conflicto ? "Conflicto" : categoria.nombre}
+              detalleValor={conflicto ? "Conflicto" : confirmado ? "✓ Confirmado" : "Sin confirmar"}
             />
           </View>
         );

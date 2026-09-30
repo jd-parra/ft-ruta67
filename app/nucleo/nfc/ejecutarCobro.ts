@@ -21,7 +21,7 @@ const MENSAJES_COBRO: Record<Exclude<CodigoCobro, CodigoBoleto>, string> = {
   PASAJERO_SIN_APP: "El pasajero debe abrir la pantalla Pagar",
   SIN_BOLETOS: "El pasajero no tiene boletos. Debe conectarse para obtener más.",
   RESPUESTA_INVALIDA: "Respuesta inesperada del teléfono del pasajero",
-  TRAMO_INVALIDO: "El tramo no es de la línea de esta unidad",
+  TRAMO_INVALIDO: "La ruta no es de la línea de esta unidad",
   ERROR_LOCAL: "No se pudo guardar el cobro",
   NFC_ERROR: "Se perdió la conexión NFC. Vuelve a acercar el teléfono.",
   NFC_CANCELADO: "Lectura cancelada",

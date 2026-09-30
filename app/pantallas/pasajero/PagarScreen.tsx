@@ -51,9 +51,9 @@ export function PagarScreen() {
       </View>
 
       <View style={[styles.boletos, restantes === 0 && styles.boletosVacio]}>
-        <Ionicons name="ticket-outline" size={16} color={restantes === 0 ? colors.error : colors.primarioOscuro} />
+        <Ionicons name={restantes === 0 ? "alert-circle-outline" : "checkmark-circle-outline"} size={16} color={restantes === 0 ? colors.error : colors.primarioOscuro} />
         <AppText style={[styles.boletosTexto, restantes === 0 && { color: colors.error }]}>
-          {restantes} {restantes === 1 ? "boleto listo" : "boletos listos"}
+          {restantes === 0 ? "Sin boletos" : "Listo para pagar"}
         </AppText>
       </View>
 
@@ -66,7 +66,7 @@ export function PagarScreen() {
             colorIcono={colors.blanco}
             fondoIcono={colors.exito}
             titulo="¡Pago registrado!"
-            subtitulo={`Tramo ${ultimoRecibo.tramoCodigo} · Unidad ${ultimoRecibo.unidadCodigo}`}
+            subtitulo={`Ruta ${ultimoRecibo.tramoCodigo} · Unidad ${ultimoRecibo.unidadCodigo}`}
             valor={formatearBs(ultimoRecibo.monto)}
             colorValor={colors.exito}
             detalleValor={formatearFechaHora(ultimoRecibo.ocurridoEn)}

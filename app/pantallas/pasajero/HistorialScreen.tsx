@@ -97,7 +97,7 @@ function ListaViajes({ viajes, lineas }: { viajes: ReciboLocal[] | null; lineas:
             <FilaLista
               icono="bus-outline"
               titulo={linea?.nombre ?? `Línea ${v.lineaCodigo}`}
-              subtitulo={`${tramo?.nombre ?? `Tramo ${v.tramoCodigo}`} · Unidad ${v.unidadCodigo}`}
+              subtitulo={`${tramo?.nombre ?? `Ruta ${v.tramoCodigo}`} · Unidad ${v.unidadCodigo}`}
               valor={`−${formatearBs(v.monto)}`}
               detalleValor={formatearFechaHora(v.ocurridoEn)}
             />

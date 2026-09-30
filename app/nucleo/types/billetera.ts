@@ -16,6 +16,17 @@ export interface Billetera {
   avisos: Aviso[];
 }
 
+/** Lo que el pasajero ve como "su saldo": lo libre más lo apartado en boletos (que sigue siendo suyo). */
+export const saldoTotal = (b: Billetera) => b.saldoDisponible + b.saldoReservado;
+
+/** Contrato §6.2: boleto emitido por el backend (`raw` es lo que se guarda y se entrega por NFC). */
+export interface BoletoEmitido {
+  bid: string;
+  raw: string;
+  montoReservado: number;
+  expiraEn: string;
+}
+
 export interface Recarga {
   id: string;
   monto: number;

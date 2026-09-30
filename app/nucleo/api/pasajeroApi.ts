@@ -2,7 +2,7 @@ import { USE_MOCKS } from "@nucleo/config";
 import { listarRecibos, type ReciboLocal } from "@nucleo/almacen/recibos";
 import { billeteraMock, LINEAS_MOCK, movimientosMock, recargarMock, VIAJES_MOCK } from "@nucleo/mocks/pasajero";
 import type { Categoria } from "@nucleo/types/auth";
-import type { Billetera, Movimiento, Recarga } from "@nucleo/types/billetera";
+import type { Billetera, BoletoEmitido, Movimiento, Recarga } from "@nucleo/types/billetera";
 import type { Linea } from "@nucleo/types/paquete";
 import { api } from "./client";
 
@@ -18,6 +18,16 @@ export async function obtenerBilletera(categoria: Categoria): Promise<Billetera>
 export async function recargar(monto: number, categoria: Categoria): Promise<{ recarga: Recarga; billetera: Billetera }> {
   if (USE_MOCKS) return recargarMock(monto, categoria);
   return (await api.post<{ recarga: Recarga; billetera: Billetera }>("/recargas", { monto, metodo: "simulada" })).data;
+}
+
+/** POST /boletos: emite hasta completar 5 activos, según alcance el saldo. Devuelve solo los nuevos. */
+export async function emitirBoletos(): Promise<{ boletos: BoletoEmitido[]; billetera: Billetera }> {
+  return (await api.post<{ boletos: BoletoEmitido[]; billetera: Billetera }>("/boletos", {})).data;
+}
+
+/** GET /boletos: los activos del pasajero, para reconciliar lo guardado en el teléfono. */
+export async function listarBoletosActivos(): Promise<BoletoEmitido[]> {
+  return (await api.get<BoletoEmitido[]>("/boletos")).data;
 }
 
 /** GET /movimientos?limite= */
