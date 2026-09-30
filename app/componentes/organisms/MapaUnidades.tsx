@@ -18,7 +18,7 @@ interface Props {
   enfoque?: string;
 }
 
-/** Mapa Leaflet (OpenStreetMap vía CARTO, sin clave) dentro de un WebView, con un marcador por unidad. */
+/** Mapa Leaflet (teselas de OpenStreetMap, sin clave) dentro de un WebView, con un marcador por unidad. */
 export function MapaUnidades({ unidades, enfoque }: Props) {
   const WebView = useRef(cargarWebView()).current;
   const web = useRef<WebViewType>(null);
@@ -72,9 +72,10 @@ const HTML = `<!doctype html>
 <script>
   var centro = [${CENTRO_MERIDA.lat}, ${CENTRO_MERIDA.lng}];
   var mapa = L.map('mapa', { zoomControl: false }).setView(centro, 14);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-    maxZoom: 19, subdomains: 'abcd',
-    attribution: '&copy; OpenStreetMap &copy; CARTO'
+  // Teselas oficiales de OpenStreetMap: sin clave (CARTO empezó a pedir una).
+  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; OpenStreetMap'
   }).addTo(mapa);
 
   var marcadores = {};
