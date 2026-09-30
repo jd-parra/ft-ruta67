@@ -10,7 +10,9 @@ import { BannerAviso } from "@componentes/molecules/BannerAviso";
 import { EstadoCargando, EstadoVacio } from "@componentes/molecules/EstadoVacio";
 import { FilaLista } from "@componentes/molecules/FilaLista";
 import { MapaUnidades, mapaDisponible } from "@componentes/organisms/MapaUnidades";
+import { useMiUbicacion } from "@hooks/useMiUbicacion";
 import { useUnidadesMapa } from "@hooks/useUnidadesMapa";
+import { leerPaquete } from "@nucleo/almacen/paquete";
 import { obtenerLineas } from "@nucleo/api/pasajeroApi";
 import { useAuth } from "@nucleo/auth/AuthContext";
 import { colors } from "@nucleo/theme";
@@ -25,6 +27,16 @@ export function MapaScreen() {
   const { unidades, error, recargar } = useUnidadesMapa();
   const [lineas, setLineas] = useState<string[]>([]);
   const [filtro, setFiltro] = useState(TODAS);
+  const miUbicacion = useMiUbicacion();
+  const [miUnidad, setMiUnidad] = useState<number | null>(null);
+
+  // El recolector ve su propia unidad resaltada (sale del paquete guardado, sin pedir nada al backend).
+  useEffect(() => {
+    if (esPasajero) return;
+    leerPaquete()
+      .then((p) => setMiUnidad(p?.unidad.codigo ?? null))
+      .catch(() => undefined);
+  }, [esPasajero]);
 
   useEffect(() => {
     if (!esPasajero) return;
@@ -61,7 +73,7 @@ export function MapaScreen() {
           <SinMapa unidades={unidades ? visibles : null} />
         ) : (
           <>
-            <MapaUnidades unidades={visibles} enfoque={filtro} />
+            <MapaUnidades unidades={visibles} enfoque={filtro} miUnidad={miUnidad} miUbicacion={miUbicacion} />
             {unidades && visibles.length === 0 && (
               <View style={styles.aviso}>
                 <BannerAviso
