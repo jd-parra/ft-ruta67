@@ -3,50 +3,30 @@ import { Ionicons } from "@expo/vector-icons";
 import { AppText } from "@componentes/atoms/AppText";
 import { formatearBs } from "@componentes/formato";
 import { colors, radius, sombra } from "@nucleo/theme";
-import type { Billetera } from "@nucleo/types/billetera";
+import { saldoTotal, type Billetera } from "@nucleo/types/billetera";
 
-/** Saldo disponible grande, reservado en boletos y viajes estimados (contrato sección 14, Inicio). */
+/** Saldo total (libre + apartado en boletos) y cuántos viajes alcanza (contrato sección 14, Inicio). */
 export function TarjetaSaldo({ billetera }: { billetera: Billetera }) {
-  const { saldoDisponible, saldoReservado, viajesEstimados, boletosActivos } = billetera;
+  const { viajesEstimados } = billetera;
   return (
     <View style={styles.tarjeta}>
       {/* Círculos decorativos: dan profundidad sin depender de un gradiente nativo. */}
       <View style={[styles.circulo, styles.circuloGrande]} />
       <View style={[styles.circulo, styles.circuloChico]} />
 
-      <AppText style={styles.etiqueta}>Saldo disponible</AppText>
+      <AppText style={styles.etiqueta}>Tu saldo</AppText>
       <AppText variant="cifra" style={styles.blanco} adjustsFontSizeToFit numberOfLines={1}>
-        {formatearBs(saldoDisponible)}
+        {formatearBs(saldoTotal(billetera))}
       </AppText>
 
-      <View style={styles.pie}>
-        <Dato icono="lock-closed-outline" etiqueta="En boletos" valor={formatearBs(saldoReservado)} />
-        <View style={styles.separador} />
-        <Dato
-          icono="bus-outline"
-          etiqueta="Te alcanza para"
-          valor={viajesEstimados === null ? "Viajes ilimitados" : `≈ ${viajesEstimados} ${viajesEstimados === 1 ? "viaje" : "viajes"}`}
-        />
-      </View>
-
-      <View style={styles.boletos}>
-        <Ionicons name="ticket-outline" size={14} color={colors.blanco} />
-        <AppText style={styles.boletosTexto}>
-          {boletosActivos} {boletosActivos === 1 ? "boleto listo" : "boletos listos"}
+      <View style={styles.viajes}>
+        <Ionicons name="bus-outline" size={14} color={colors.blanco} />
+        <AppText style={styles.viajesTexto}>
+          {viajesEstimados === null
+            ? "Viajes ilimitados"
+            : `Te alcanza para ≈ ${viajesEstimados} ${viajesEstimados === 1 ? "viaje" : "viajes"}`}
         </AppText>
       </View>
-    </View>
-  );
-}
-
-function Dato({ icono, etiqueta, valor }: { icono: keyof typeof Ionicons.glyphMap; etiqueta: string; valor: string }) {
-  return (
-    <View style={styles.dato}>
-      <View style={styles.datoFila}>
-        <Ionicons name={icono} size={14} color={colors.primarioClaro} />
-        <AppText style={styles.etiqueta}>{etiqueta}</AppText>
-      </View>
-      <AppText style={styles.datoValor}>{valor}</AppText>
     </View>
   );
 }
@@ -58,12 +38,7 @@ const styles = StyleSheet.create({
   circuloChico: { width: 120, height: 120, bottom: -50, right: 60, backgroundColor: colors.primarioOscuro, opacity: 0.35 },
   etiqueta: { color: colors.primarioClaro, fontSize: 13 },
   blanco: { color: colors.blanco },
-  pie: { flexDirection: "row", marginTop: 16, gap: 16 },
-  separador: { width: 1, backgroundColor: colors.acento, opacity: 0.5 },
-  dato: { flex: 1, gap: 4 },
-  datoFila: { flexDirection: "row", alignItems: "center", gap: 4 },
-  datoValor: { color: colors.blanco, fontWeight: "700", fontSize: 16 },
-  boletos: {
+  viajes: {
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
@@ -74,5 +49,5 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: radius.pill,
   },
-  boletosTexto: { color: colors.blanco, fontWeight: "600", fontSize: 13 },
+  viajesTexto: { color: colors.blanco, fontWeight: "600", fontSize: 13 },
 });

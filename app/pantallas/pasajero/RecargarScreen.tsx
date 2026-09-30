@@ -15,7 +15,7 @@ import { recargar } from "@nucleo/api/pasajeroApi";
 import { useAuth } from "@nucleo/auth/AuthContext";
 import type { PasajeroNav } from "@nucleo/navigation/types";
 import { colors } from "@nucleo/theme";
-import type { Billetera } from "@nucleo/types/billetera";
+import { saldoTotal, type Billetera } from "@nucleo/types/billetera";
 import { useBilletera } from "@hooks/useBilletera";
 
 const MONTOS_RAPIDOS = [50000, 100000, 200000]; // 500, 1000 y 2000 Bs en céntimos
@@ -55,16 +55,18 @@ export function RecargarScreen() {
   };
 
   if (resultado) {
+    // key propia: monta un botón nuevo. Reusar el de "Recargar" (que se deshabilitó a mitad del toque)
+    // lo deja sin responder en Android con la nueva arquitectura.
     return (
-      <Pantalla pie={<Boton titulo="Listo" icono="checkmark" onPress={volver} />}>
+      <Pantalla key="exito" pie={<Boton titulo="Listo" icono="checkmark" onPress={volver} />}>
         <View style={styles.exito}>
           <IconoCirculo nombre="checkmark" color={colors.blanco} fondo={colors.exito} tamano={88} />
           <AppText variant="titulo" style={styles.centro}>¡Recarga confirmada!</AppText>
           <AppText style={[styles.centro, styles.suave]}>Agregaste {formatearBs(resultado.monto)} a tu saldo</AppText>
           <Tarjeta style={styles.nuevoSaldo}>
-            <AppText variant="etiqueta">Saldo disponible</AppText>
+            <AppText variant="etiqueta">Tu saldo</AppText>
             <AppText variant="cifra" style={{ color: colors.primarioOscuro }}>
-              {formatearBs(resultado.billetera.saldoDisponible)}
+              {formatearBs(saldoTotal(resultado.billetera))}
             </AppText>
           </Tarjeta>
         </View>
@@ -75,7 +77,7 @@ export function RecargarScreen() {
   return (
     <Pantalla
       titulo="Recargar saldo"
-      subtitulo={billetera ? `Disponible: ${formatearBs(billetera.saldoDisponible)}` : " "}
+      subtitulo={billetera ? `Tu saldo: ${formatearBs(saldoTotal(billetera))}` : " "}
       onAtras={volver}
       pie={
         <Boton
