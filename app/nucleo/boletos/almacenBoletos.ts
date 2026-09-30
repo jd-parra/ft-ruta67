@@ -19,6 +19,11 @@ export async function agregarBoletos(raws: string[]) {
   await escribir([...actuales, ...raws.filter((r) => !actuales.includes(r))]);
 }
 
+/** Reemplaza todos los boletos guardados (tras reconciliar con el backend). */
+export async function reemplazarBoletos(raws: string[]) {
+  await escribir(raws);
+}
+
 export async function quitarBoletosPorBid(bids: string[]) {
   const actuales = await leerBoletos();
   await escribir(actuales.filter((raw) => !bids.includes(bidDeRaw(raw))));

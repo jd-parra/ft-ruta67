@@ -3,6 +3,8 @@ import { AppState } from "react-native";
 import { useIsFocused } from "@react-navigation/native";
 import { boletosRestantes, hceSoportado, iniciarPago } from "@nucleo/hce/servicioPago";
 import type { ReciboLocal } from "@nucleo/almacen/recibos";
+import { renovarBoletos } from "@nucleo/boletos/renovarBoletos";
+import { subirRecibos } from "@nucleo/sync/subirRecibos";
 
 /** Activa la tarjeta emulada solo con la pantalla enfocada y la app en primer plano. */
 export function usePagoHce(version = 0) {
@@ -24,11 +26,23 @@ export function usePagoHce(version = 0) {
     let cancelado = false;
 
     boletosRestantes().then(setRestantes);
-    iniciarPago((recibos) => {
-      setUltimoRecibo(recibos[recibos.length - 1]);
-      void boletosRestantes().then(setRestantes);
-    })
+    // Con internet trae boletos nuevos antes de activar el HCE; sin internet paga con los guardados.
+    subirRecibos()
+      .catch(() => undefined)
+      .then(() => renovarBoletos())
+      .catch(() => undefined)
+      .then(() => {
+        if (cancelado) return null;
+        void boletosRestantes().then(setRestantes);
+        return iniciarPago((recibos) => {
+          setUltimoRecibo(recibos[recibos.length - 1]);
+          void boletosRestantes().then(setRestantes);
+          // Confirma el cobro en el backend (§19). Sin conexión se reintenta al volver a Inicio o Pagar.
+          void subirRecibos().catch(() => undefined);
+        });
+      })
       .then((d) => {
+        if (!d) return;
         if (cancelado) return void d();
         detener = d;
         setActivo(true);
