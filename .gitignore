@@ -11,6 +11,7 @@ web-build/
 /app/android/
 /app/ios/
 /app/modules/*/android/build/
+/app/modules/*/android/.gradle/
 *.apk
 *.aab
 *.ipa
