@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Pasaje",
+    "name": "Ruta67",
     "slug": "pasaje",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -10,7 +10,11 @@
       "package": "com.beessync.pasaje",
       "permissions": [
         "android.permission.NFC"
-      ]
+      ],
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/icono-adaptable.png",
+        "backgroundColor": "#6D28D9"
+      }
     },
     "plugins": [
       "expo-dev-client",
@@ -19,13 +23,13 @@
       [
         "react-native-nfc-manager",
         {
-          "nfcPermission": "Pasaje usa NFC para pagar y cobrar boletos"
+          "nfcPermission": "Ruta67 usa NFC para pagar y cobrar boletos"
         }
       ],
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Pasaje usa tu ubicación para mostrarte en el mapa y, si eres recolector, para mostrar tu unidad mientras estás en turno"
+          "locationWhenInUsePermission": "Ruta67 usa tu ubicación para mostrarte en el mapa y, si eres recolector, para mostrar tu unidad mientras estás en turno"
         }
       ],
       [
@@ -35,6 +39,14 @@
           "recordAudioAndroid": false,
           "enableBackgroundPlayback": false
         }
+      ],
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash.png",
+          "imageWidth": 220,
+          "backgroundColor": "#6D28D9"
+        }
       ]
     ],
     "extra": {
@@ -42,6 +54,7 @@
         "projectId": "71533ceb-368f-40bc-ae0e-42a25b874579"
       }
     },
-    "owner": "josedev2004s-team"
+    "owner": "josedev2004s-team",
+    "icon": "./assets/icono.png"
   }
 }
