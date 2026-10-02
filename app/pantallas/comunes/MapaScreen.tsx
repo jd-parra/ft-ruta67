@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { AppText } from "@componentes/atoms/AppText";
@@ -9,7 +9,7 @@ import { formatearFechaHora } from "@componentes/formato";
 import { BannerAviso } from "@componentes/molecules/BannerAviso";
 import { EstadoCargando, EstadoVacio } from "@componentes/molecules/EstadoVacio";
 import { FilaLista } from "@componentes/molecules/FilaLista";
-import { MapaUnidades, mapaDisponible } from "@componentes/organisms/MapaUnidades";
+import { MapaUnidades, mapaDisponible, type TrazoRuta } from "@componentes/organisms/MapaUnidades";
 import { useMiUbicacion } from "@hooks/useMiUbicacion";
 import { useUnidadesMapa } from "@hooks/useUnidadesMapa";
 import { leerPaquete } from "@nucleo/almacen/paquete";
@@ -17,6 +17,7 @@ import { obtenerLineas } from "@nucleo/api/pasajeroApi";
 import { useAuth } from "@nucleo/auth/AuthContext";
 import { colors } from "@nucleo/theme";
 import type { UnidadMapa } from "@nucleo/types/mapa";
+import type { Linea } from "@nucleo/types/paquete";
 
 const TODAS = "Todas";
 
@@ -25,25 +26,37 @@ export function MapaScreen() {
   const { sesion } = useAuth();
   const esPasajero = sesion?.usuario.rol === "pasajero";
   const { unidades, error, recargar } = useUnidadesMapa();
-  const [lineas, setLineas] = useState<string[]>([]);
+  const [lineas, setLineas] = useState<Linea[]>([]);
   const [filtro, setFiltro] = useState(TODAS);
   const miUbicacion = useMiUbicacion();
   const [miUnidad, setMiUnidad] = useState<number | null>(null);
 
-  // El recolector ve su propia unidad resaltada (sale del paquete guardado, sin pedir nada al backend).
+  // El recolector ve su propia unidad resaltada y el recorrido de su línea (del paquete guardado, sin
+  // pedir nada al backend). El pasajero, todas las líneas para filtrar y ver qué bus le sirve.
   useEffect(() => {
-    if (esPasajero) return;
+    if (esPasajero) {
+      obtenerLineas().then(setLineas).catch(() => undefined);
+      return;
+    }
     leerPaquete()
-      .then((p) => setMiUnidad(p?.unidad.codigo ?? null))
+      .then((p) => {
+        setMiUnidad(p?.unidad.codigo ?? null);
+        if (p) setLineas([p.linea]);
+      })
       .catch(() => undefined);
   }, [esPasajero]);
 
-  useEffect(() => {
-    if (!esPasajero) return;
-    obtenerLineas()
-      .then((ls) => setLineas(ls.map((l) => l.nombre)))
-      .catch(() => undefined);
-  }, [esPasajero]);
+  const trazos = useMemo<TrazoRuta[]>(
+    () =>
+      lineas
+        .filter((l) => filtro === TODAS || l.nombre === filtro)
+        .flatMap((l) =>
+          l.tramos
+            .filter((t) => (t.trazo?.length ?? 0) > 1)
+            .map((t) => ({ lineaNombre: l.nombre, tramoNombre: t.nombre, tarifa: t.tarifaCompleta, trazo: t.trazo! }))
+        ),
+    [lineas, filtro]
+  );
 
   // /mapa/unidades trae el nombre de la línea, no su código: se filtra por nombre.
   const visibles = (unidades ?? []).filter((u) => filtro === TODAS || u.lineaNombre === filtro);
@@ -58,7 +71,7 @@ export function MapaScreen() {
 
       {esPasajero && lineas.length > 0 && (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.filtros} contentContainerStyle={styles.filtrosFila}>
-          {[TODAS, ...lineas].map((l) => (
+          {[TODAS, ...lineas.map((l) => l.nombre)].map((l) => (
             <Chip key={l} texto={l} activo={filtro === l} onPress={() => setFiltro(l)} />
           ))}
         </ScrollView>
@@ -73,7 +86,7 @@ export function MapaScreen() {
           <SinMapa unidades={unidades ? visibles : null} />
         ) : (
           <>
-            <MapaUnidades unidades={visibles} enfoque={filtro} miUnidad={miUnidad} miUbicacion={miUbicacion} />
+            <MapaUnidades unidades={visibles} trazos={trazos} enfoque={filtro} miUnidad={miUnidad} miUbicacion={miUbicacion} />
             {unidades && visibles.length === 0 && (
               <View style={styles.aviso}>
                 <BannerAviso
