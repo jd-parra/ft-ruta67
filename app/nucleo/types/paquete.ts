@@ -19,6 +19,8 @@ export interface Tramo {
   tarifaCompleta: number;
   tarifaManual?: number;
   frecuencia: number;
+  /** Recorrido en el mapa, puntos [lat, lng] (lo marca la central). */
+  trazo?: [number, number][];
 }
 
 export interface Linea {

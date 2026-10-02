@@ -4,14 +4,21 @@ import { ejecutarCobro, fallo, type OpcionesPreparar, type ResultadoCobro } from
 
 let iniciado = false;
 
-/** true si el teléfono tiene NFC y está encendido. */
-export async function nfcListo(): Promise<boolean> {
-  if (!(await NfcManager.isSupported())) return false;
+export type EstadoNfc = "sin_nfc" | "apagado" | "listo";
+
+/** Si el teléfono no tiene NFC, lo tiene apagado o está listo para cobrar. */
+export async function estadoNfc(): Promise<EstadoNfc> {
+  if (!(await NfcManager.isSupported())) return "sin_nfc";
   if (!iniciado) {
     await NfcManager.start();
     iniciado = true;
   }
-  return NfcManager.isEnabled();
+  return (await NfcManager.isEnabled()) ? "listo" : "apagado";
+}
+
+/** Abre los ajustes de NFC del teléfono para que el recolector lo encienda. */
+export async function abrirAjustesNfc() {
+  await NfcManager.goToNfcSetting().catch(() => undefined);
 }
 
 export type OpcionesLectura = Omit<OpcionesPreparar, "yaCobrado" | "ahora">;

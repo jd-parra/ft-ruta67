@@ -23,7 +23,8 @@ eas build --profile development --platform android   # o: pnpm exec expo run:and
 pnpm start
 pnpm typecheck
 ```
-- `EXPO_PUBLIC_USE_MOCKS=false` y `EXPO_PUBLIC_API_HOST=<ip>:3000` para hablar con el backend.
+- Por defecto habla con el backend (`EXPO_PUBLIC_API_HOST=<ip>:3001` o `EXPO_PUBLIC_API_URL`). Datos de prueba solo con `EXPO_PUBLIC_USE_MOCKS=true`.
+- Cobro por QR (pasajeros sin NFC): el recolector toca el círculo de Cobrar y escanea el QR que el pasajero abre en Pagar. Necesita un dev build nuevo (`expo-camera`, `react-native-svg`).
 - Login mock (clave `1234`): `04140000001` pasajero, `04140000002` recolector.
 - Alias: `@nucleo`, `@pantallas`, `@componentes`, `@hooks`, `@shared`.
 - Tests: `pnpm test` (formato de boleto, tarifa, reglas 8.3, APDU y un cobro completo contra un pasajero simulado). `pnpm dev:boleto [categoria] [dias]` genera boletos firmados con la llave fija de desarrollo (la que usa el paquete mock).

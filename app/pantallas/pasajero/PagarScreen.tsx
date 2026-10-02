@@ -9,8 +9,11 @@ import { formatearBs, formatearFechaHora } from "@componentes/formato";
 import { BannerAviso } from "@componentes/molecules/BannerAviso";
 import { CirculoNfc } from "@componentes/molecules/CirculoNfc";
 import { FilaLista } from "@componentes/molecules/FilaLista";
+import { QrPago } from "@componentes/organisms/QrPago";
 import { Pantalla } from "@componentes/templates/Pantalla";
 import { agregarBoletos } from "@nucleo/boletos/almacenBoletos";
+import { apartarBoletoQr } from "@nucleo/boletos/boletoQr";
+import { textoQr } from "@nucleo/qr/cobroQr";
 import { usePagoHce } from "@hooks/usePagoHce";
 import { colors, radius } from "@nucleo/theme";
 
@@ -19,7 +22,17 @@ export function PagarScreen() {
   const [version, setVersion] = useState(0);
   const [pegado, setPegado] = useState("");
   const [msg, setMsg] = useState<string | null>(null);
+  const [qr, setQr] = useState<string | null>(null);
+  const [sinBoletoQr, setSinBoletoQr] = useState(false);
   const { activo, restantes, ultimoRecibo, error, soportado } = usePagoHce(version);
+
+  const mostrarQr = async () => {
+    const raw = await apartarBoletoQr();
+    setSinBoletoQr(!raw);
+    if (!raw) return;
+    setQr(textoQr(raw));
+    setVersion((v) => v + 1); // el boleto apartado sale de la lista del NFC
+  };
 
   const cargar = async () => {
     try {
@@ -34,7 +47,7 @@ export function PagarScreen() {
 
   const listo = soportado && activo && restantes > 0;
   const estado = !soportado
-    ? { titulo: "Este teléfono no puede pagar por NFC", detalle: "Necesitas un Android con NFC. El pago por QR llega pronto." }
+    ? { titulo: "Paga con QR", detalle: "Este teléfono no tiene NFC: muestra tu QR y el recolector lo escanea." }
     : !activo
       ? { titulo: "Preparando…", detalle: "Activando el pago por NFC" }
       : restantes === 0
@@ -43,7 +56,7 @@ export function PagarScreen() {
 
   return (
     <Pantalla titulo="Pagar" subtitulo="Mantén esta pantalla abierta al subir">
-      <CirculoNfc activo={listo} icono={!soportado ? "close" : listo ? "phone-portrait-outline" : "hourglass-outline"} />
+      <CirculoNfc activo={listo} icono={!soportado ? "qr-code-outline" : listo ? "phone-portrait-outline" : "hourglass-outline"} />
 
       <View style={styles.textos}>
         <AppText variant="titulo" style={styles.centro}>{estado.titulo}</AppText>
@@ -56,6 +69,16 @@ export function PagarScreen() {
           {restantes === 0 ? "Sin boletos" : "Listo para pagar"}
         </AppText>
       </View>
+
+      <Boton
+        titulo="Pagar con QR"
+        icono="qr-code-outline"
+        secundario={soportado}
+        onPress={() => void mostrarQr()}
+      />
+      {sinBoletoQr && (
+        <BannerAviso tono="aviso" icono="alert-circle-outline" titulo="No tienes boletos" mensaje="Conéctate a internet y recarga saldo para obtener boletos." />
+      )}
 
       {error && <BannerAviso tono="error" icono="alert-circle-outline" titulo="No se pudo activar el pago" mensaje={error} />}
 
@@ -82,6 +105,7 @@ export function PagarScreen() {
           {msg && <AppText variant="etiqueta">{msg}</AppText>}
         </Tarjeta>
       )}
+      <QrPago texto={qr} onCerrar={() => setQr(null)} />
     </Pantalla>
   );
 }

@@ -46,6 +46,7 @@ export async function corregirCobro(
     ahora: new Date(previo.ocurridoEn), // el momento del cobro no cambia
   });
   if (!nuevo.ok) return nuevo;
+  const cobro = { ...nuevo.cobro, metodo: previo.metodo }; // un cobro por QR sigue siendo QR
 
   if (previo.estado !== "pendiente") {
     try {
@@ -56,9 +57,9 @@ export async function corregirCobro(
   }
   await d.eliminar(bid);
   try {
-    await d.persistir({ bid, cobro: nuevo.cobro, categoria: nuevo.categoriaAplicada });
+    await d.persistir({ bid, cobro, categoria: nuevo.categoriaAplicada });
   } catch {
     return fallo("ERROR_LOCAL");
   }
-  return nuevo;
+  return { ...nuevo, cobro };
 }

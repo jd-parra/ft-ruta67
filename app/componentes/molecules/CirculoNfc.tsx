@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import { Animated, Easing, StyleSheet, View } from "react-native";
+import { Animated, Easing, Pressable, StyleSheet, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { AppText } from "@componentes/atoms/AppText";
 import { colors } from "@nucleo/theme";
 
 const TAMANO = 140;
@@ -9,16 +10,28 @@ interface Props {
   /** Morado con ondas cuando el NFC está listo; gris claro si no. */
   activo: boolean;
   icono: keyof typeof Ionicons.glyphMap;
+  /** Hace el círculo tocable (Cobrar: abre el escáner de QR). */
+  onPress?: () => void;
+  /** Texto corto bajo el ícono, dentro del círculo (p. ej. «Escanear QR»). */
+  pista?: string;
 }
 
 /** Círculo central de Pagar y Cobrar: ondas que salen mientras el teléfono espera el toque. */
-export function CirculoNfc({ activo, icono }: Props) {
+export function CirculoNfc({ activo, icono, onPress, pista }: Props) {
+  const color = activo ? colors.blanco : colors.primarioOscuro;
   return (
     <View style={styles.zona}>
       <Pulso activo={activo} />
-      <View style={[styles.circulo, !activo && styles.circuloInactivo]}>
-        <Ionicons name={icono} size={56} color={activo ? colors.blanco : colors.textoSuave} />
-      </View>
+      <Pressable
+        onPress={onPress}
+        disabled={!onPress}
+        accessibilityRole={onPress ? "button" : undefined}
+        accessibilityLabel={pista}
+        style={({ pressed }) => [styles.circulo, !activo && styles.circuloInactivo, pressed && styles.presionado]}
+      >
+        <Ionicons name={icono} size={pista ? 48 : 56} color={onPress || activo ? color : colors.textoSuave} />
+        {pista && <AppText style={[styles.pista, { color }]}>{pista}</AppText>}
+      </Pressable>
     </View>
   );
 }
@@ -74,5 +87,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   circuloInactivo: { backgroundColor: colors.primarioClaro },
+  presionado: { transform: [{ scale: 0.95 }] },
+  pista: { fontSize: 11, fontWeight: "700", marginTop: 2 },
   onda: { position: "absolute", width: TAMANO, height: TAMANO, borderRadius: TAMANO / 2, backgroundColor: colors.acento },
 });

@@ -1,4 +1,4 @@
-// Contrato sección 5 (+ §19: viajesEstimados es null para exonerados).
+// Contrato sección 5 (+ §19: viajesEstimados es null solo con descuento del 100 %).
 
 export interface Aviso {
   id: string;
@@ -12,6 +12,8 @@ export interface Billetera {
   saldoReservado: number;
   boletosActivos: number;
   tarifaReferencia: number;
+  /** De qué gaceta sale la tarifa de referencia (p. ej. "Gaceta Oficial N° 43.xxx"). */
+  tarifaFuente: string;
   viajesEstimados: number | null;
   avisos: Aviso[];
 }
@@ -41,5 +43,7 @@ export interface Movimiento {
   monto: number;
   saldoDisponibleDespues: number;
   cobroId?: string;
+  /** En cobro y su liberación: lo que costó el viaje de verdad y dónde. */
+  viaje?: { monto: number; lineaNombre: string; tramoNombre: string; unidadCodigo: number };
   creadoEn: string;
 }

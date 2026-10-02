@@ -15,8 +15,8 @@ export const PAQUETE_MOCK: PaqueteRecolector = {
     ],
   },
   tabulador: {
-    id: "tab-1", fuente: "Tabulador septiembre 2026 (valores de prueba)", vigenteDesde: "2026-09-01T04:00:00Z",
-    descuentos: { general: 0, estudiante: 0.5, exonerado: 1 }, recargoDomingoFeriado: 0,
+    id: "tab-1", fuente: "Gaceta Oficial, septiembre 2026 (valores de prueba)", vigenteDesde: "2026-09-01T04:00:00Z",
+    descuentos: { general: 0, estudiante: 0.5, exonerado: 0.5 }, recargoDomingoFeriado: 0,
     urbanoMinimo: 20000, suburbano: [{ hastaKm: 10, monto: 28000 }, { hastaKm: 9999, monto: 99000 }],
   },
   tabuladorProximo: null,

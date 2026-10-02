@@ -6,7 +6,8 @@ import type { Linea } from "@nucleo/types/paquete";
 // Datos de prueba con la forma de bk-ruta67/mocks (contrato sección 13).
 // Viven en memoria: se reinician al recargar la app.
 
-const DESCUENTO: Record<Categoria, number> = { general: 0, estudiante: 0.5, exonerado: 1 };
+const DESCUENTO: Record<Categoria, number> = { general: 0, estudiante: 0.5, exonerado: 0.5 };
+const FUENTE = "Gaceta Oficial, septiembre 2026 (valores de prueba)";
 const URBANO_MINIMO = 20000;
 
 export const LINEAS_MOCK: Linea[] = [
@@ -38,11 +39,13 @@ export const VIAJES_MOCK: ReciboLocal[] = [
   { bid: "mock-v3", lineaCodigo: 1, unidadCodigo: 101, tramoCodigo: 2, monto: 10000, ocurridoEn: haceMin(60 * 50) },
 ];
 
-let estado: { billetera: Omit<Billetera, "tarifaReferencia" | "viajesEstimados">; movimientos: Movimiento[] } = {
+const VIAJE_1 = { monto: 10000, lineaNombre: "Chorros de Milla", tramoNombre: "Centro – Chorros de Milla", unidadCodigo: 101 };
+
+let estado: { billetera: Omit<Billetera, "tarifaReferencia" | "tarifaFuente" | "viajesEstimados">; movimientos: Movimiento[] } = {
   billetera: { saldoDisponible: 48000, saldoReservado: 42000, boletosActivos: 3, avisos: [] },
   movimientos: [
-    { id: "m-4", tipo: "liberacion", monto: 4000, saldoDisponibleDespues: 48000, cobroId: "c-1", creadoEn: haceMin(90) },
-    { id: "m-3", tipo: "cobro", monto: 0, saldoDisponibleDespues: 44000, cobroId: "c-1", creadoEn: haceMin(90) },
+    { id: "m-4", tipo: "liberacion", monto: 4000, saldoDisponibleDespues: 48000, cobroId: "c-1", viaje: VIAJE_1, creadoEn: haceMin(90) },
+    { id: "m-3", tipo: "cobro", monto: 0, saldoDisponibleDespues: 44000, cobroId: "c-1", viaje: VIAJE_1, creadoEn: haceMin(90) },
     { id: "m-2", tipo: "reserva", monto: -56000, saldoDisponibleDespues: 44000, creadoEn: haceMin(60 * 27) },
     { id: "m-1", tipo: "recarga", monto: 100000, saldoDisponibleDespues: 100000, creadoEn: haceMin(60 * 28) },
   ],
@@ -56,6 +59,7 @@ export function billeteraMock(categoria: Categoria): Billetera {
   return {
     ...estado.billetera,
     tarifaReferencia,
+    tarifaFuente: FUENTE,
     viajesEstimados: tarifaReferencia === 0 ? null : Math.floor((saldoDisponible + saldoReservado) / tarifaReferencia),
     avisos:
       categoria === "estudiante"

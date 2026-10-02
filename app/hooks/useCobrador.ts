@@ -9,7 +9,9 @@ import { conectarSocket } from "@nucleo/realtime/socket";
 import { corregir, sincronizarCobros } from "@nucleo/sync/cobros";
 import type { ModoTramo } from "@nucleo/tarifas/elegirTramo";
 import type { PaqueteRecolector } from "@nucleo/types/paquete";
-import { cancelarLectura, leerCobro, nfcListo } from "@nucleo/nfc/lectorCobro";
+import { abrirAjustesNfc, cancelarLectura, estadoNfc, leerCobro, type EstadoNfc } from "@nucleo/nfc/lectorCobro";
+import { bidsCobrados, encolarCobro } from "@nucleo/almacen/colaCobros";
+import { ejecutarCobroQr } from "@nucleo/qr/cobroQr";
 import type { ResultadoCobro } from "@nucleo/nfc/ejecutarCobro";
 
 export const SEGUNDOS_TARJETA = 3;
@@ -37,7 +39,7 @@ export function useCobrador() {
   const [paquete, setPaquete] = useState<PaqueteRecolector | null>(null);
   const [desactualizado, setDesactualizado] = useState(false);
   const [cargando, setCargando] = useState(true);
-  const [nfc, setNfc] = useState<boolean | null>(null);
+  const [nfc, setNfc] = useState<EstadoNfc | null>(null);
   const [modo, setModo] = useState<ModoTramo>({ tipo: "automatico" });
   const [tarjeta, setTarjeta] = useState<Tarjeta | null>(null);
   const [eligiendo, setEligiendo] = useState(false);
@@ -69,7 +71,6 @@ export function useCobrador() {
   // Al abrir: paquete (si hay internet; si no, el último guardado), NFC, contador y cobros pendientes.
   useEffect(() => {
     void refrescarPaquete();
-    void nfcListo().then(setNfc);
     refrescarResumen();
     void sincronizarCobros();
   }, [refrescarPaquete, refrescarResumen]);
@@ -81,7 +82,13 @@ export function useCobrador() {
     return () => void socket?.off("paquete:actualizado", refrescarPaquete);
   }, [sesion, refrescarPaquete]);
 
+  // NFC al entrar y cada vez que vuelve al frente: así, si lo encendió en los ajustes, empieza a cobrar solo.
+  useEffect(() => {
+    if (enPrimerPlano) void estadoNfc().then(setNfc).catch(() => setNfc("sin_nfc"));
+  }, [enPrimerPlano]);
+
   const mostrar = useCallback((t: Omit<Tarjeta, "id">) => {
+    cierreTarjeta.current?.(); // un cobro por QR puede llegar con otra tarjeta abierta
     const id = ++idTarjeta.current;
     setTarjeta({ ...t, id });
     setEligiendo(false);
@@ -124,7 +131,7 @@ export function useCobrador() {
   );
 
   // Lector siempre escuchando: solo con la pantalla enfocada, app en primer plano, paquete y NFC.
-  const activo = enfocada && enPrimerPlano && !!paquete && nfc === true;
+  const activo = enfocada && enPrimerPlano && !!paquete && nfc === "listo";
   useEffect(() => {
     if (!activo) return;
     let cancelado = false;
@@ -152,6 +159,26 @@ export function useCobrador() {
       cierreTarjeta.current?.();
     };
   }, [activo, mostrar, subir, refrescarResumen]);
+
+  /** Cobro por QR (pasajeros sin NFC): mismas reglas y la misma tarjeta que un toque. */
+  const cobrarQr = useCallback(
+    async (texto: string) => {
+      const actual = paqueteRef.current;
+      if (!actual) return;
+      const res = await ejecutarCobroQr(texto, {
+        paquete: actual,
+        modo: modoRef.current,
+        yaCobrado: await bidsCobrados(),
+        persistir: encolarCobro,
+      });
+      avisarCobro(res.ok);
+      refrescarResumen();
+      const bid = res.ok ? res.boleto.bid : null;
+      void mostrar({ res, bid, nombre: null, subida: res.ok ? "subiendo" : "ok" });
+      if (bid) void subir(bid);
+    },
+    [mostrar, subir, refrescarResumen]
+  );
 
   /** «Corregir» (otro tramo) o «Cobrar como general». */
   const corregirTarjeta = useCallback(
@@ -185,6 +212,7 @@ export function useCobrador() {
     escuchando: activo, corrigiendo: eligiendo || procesando, procesando,
     elegirCorreccion: () => setEligiendo(true),
     cancelarCorreccion: () => setEligiendo(false),
-    corregirTarjeta,
+    corregirTarjeta, cobrarQr,
+    activarNfc: abrirAjustesNfc,
   };
 }
