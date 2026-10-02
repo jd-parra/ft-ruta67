@@ -21,6 +21,13 @@
       "expo-secure-store",
       "expo-sqlite",
       [
+        "expo-camera",
+        {
+          "cameraPermission": "Ruta67 usa la cámara para cobrar escaneando el QR del pasajero",
+          "recordAudioAndroid": false
+        }
+      ],
+      [
         "react-native-nfc-manager",
         {
           "nfcPermission": "Ruta67 usa NFC para pagar y cobrar boletos"

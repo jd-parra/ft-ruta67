@@ -1,32 +1,23 @@
 import { useCallback, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import { useFocusEffect } from "@react-navigation/native";
-import type { Ionicons } from "@expo/vector-icons";
 import { Boton } from "@componentes/atoms/Boton";
 import { Tarjeta } from "@componentes/atoms/Tarjeta";
 import { formatearBs, formatearFechaHora } from "@componentes/formato";
 import { EstadoCargando, EstadoVacio } from "@componentes/molecules/EstadoVacio";
+import { BannerAviso } from "@componentes/molecules/BannerAviso";
 import { FilaLista } from "@componentes/molecules/FilaLista";
 import { Segmentado } from "@componentes/molecules/Segmentado";
 import { Pantalla } from "@componentes/templates/Pantalla";
 import type { ReciboLocal } from "@nucleo/almacen/recibos";
 import { mensajeDeError } from "@nucleo/api/errores";
 import { listarMovimientos, listarViajes, obtenerLineas } from "@nucleo/api/pasajeroApi";
+import { movimientosVisibles } from "@nucleo/billetera/movimientosVisibles";
 import { colors } from "@nucleo/theme";
 import type { Movimiento } from "@nucleo/types/billetera";
 import type { Linea } from "@nucleo/types/paquete";
 
 type Vista = "viajes" | "movimientos";
-
-const MOVIMIENTO: Record<
-  Movimiento["tipo"],
-  { titulo: string; icono: keyof typeof Ionicons.glyphMap; color: string; fondo: string }
-> = {
-  recarga: { titulo: "Recarga", icono: "add-circle-outline", color: colors.exito, fondo: colors.exitoClaro },
-  reserva: { titulo: "Boletos emitidos", icono: "ticket-outline", color: colors.primario, fondo: colors.primarioClaro },
-  cobro: { titulo: "Viaje pagado", icono: "bus-outline", color: colors.primarioOscuro, fondo: colors.primarioClaro },
-  liberacion: { titulo: "Devolución de reserva", icono: "arrow-undo-outline", color: colors.exito, fondo: colors.exitoClaro },
-};
 
 /** Historial (contrato sección 14): viajes desde los recibos locales + movimientos del backend. */
 export function HistorialScreen() {
@@ -67,7 +58,7 @@ export function HistorialScreen() {
       <Segmentado<Vista>
         opciones={[
           { valor: "viajes", texto: "Viajes" },
-          { valor: "movimientos", texto: "Movimientos" },
+          { valor: "movimientos", texto: "Recargas y pagos" },
         ]}
         valor={vista}
         onChange={setVista}
@@ -117,35 +108,51 @@ function ListaMovimientos({ movimientos, error, onReintentar }: { movimientos: M
     );
   }
   if (!movimientos) return <EstadoCargando />;
-  if (!movimientos.length) {
+  const visibles = movimientosVisibles(movimientos);
+  if (!visibles.length) {
     return <EstadoVacio icono="receipt-outline" titulo="Sin movimientos" mensaje="Tus recargas y pagos aparecerán aquí." />;
   }
   return (
-    <Tarjeta style={styles.lista}>
-      {movimientos.map((m, i) => {
-        const t = MOVIMIENTO[m.tipo];
-        // El cobro sale de lo reservado (monto 0): no cambia el disponible (§19).
-        const valor = m.tipo === "cobro" ? "Con boleto" : `${m.monto > 0 ? "+" : "−"}${formatearBs(Math.abs(m.monto))}`;
-        return (
+    <View style={styles.bloque}>
+      <BannerAviso
+        tono="info"
+        icono="information-circle-outline"
+        titulo="¿Cómo se cobra?"
+        mensaje="Cada viaje descuenta de tu saldo la tarifa de su ruta según la Gaceta Oficial. Los pagos por QR aparecen aquí cuando el recolector se conecta."
+      />
+      <Tarjeta style={styles.lista}>
+        {visibles.map((m, i) => (
           <View key={m.id} style={i > 0 && styles.separador}>
-            <FilaLista
-              icono={t.icono}
-              colorIcono={t.color}
-              fondoIcono={t.fondo}
-              titulo={t.titulo}
-              subtitulo={formatearFechaHora(m.creadoEn)}
-              valor={valor}
-              colorValor={m.monto > 0 ? colors.exito : colors.texto}
-              detalleValor={`Saldo ${formatearBs(m.saldoDisponibleDespues)}`}
-            />
+            {m.tipo === "recarga" ? (
+              <FilaLista
+                icono="add-circle-outline"
+                colorIcono={colors.exito}
+                fondoIcono={colors.exitoClaro}
+                titulo="Recarga"
+                subtitulo={formatearFechaHora(m.fecha)}
+                valor={`+${formatearBs(m.monto)}`}
+                colorValor={colors.exito}
+              />
+            ) : (
+              <FilaLista
+                icono="bus-outline"
+                colorIcono={colors.primarioOscuro}
+                fondoIcono={colors.primarioClaro}
+                titulo={m.lineaNombre ?? "Viaje pagado"}
+                subtitulo={[m.tramoNombre, m.unidadCodigo && `Unidad ${m.unidadCodigo}`].filter(Boolean).join(" · ") || "Con boleto"}
+                valor={m.monto === null ? "Con boleto" : `−${formatearBs(m.monto)}`}
+                detalleValor={formatearFechaHora(m.fecha)}
+              />
+            )}
           </View>
-        );
-      })}
-    </Tarjeta>
+        ))}
+      </Tarjeta>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
+  bloque: { gap: 12 },
   lista: { paddingVertical: 4 },
   separador: { borderTopWidth: 1, borderTopColor: colors.borde },
 });

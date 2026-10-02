@@ -28,5 +28,5 @@ export function bsACentimos(texto: string): number | null {
 export const CATEGORIAS: Record<Categoria, { nombre: string; icono: keyof typeof Ionicons.glyphMap; detalle: string }> = {
   general: { nombre: "General", icono: "person-outline", detalle: "Pasaje completo" },
   estudiante: { nombre: "Estudiante", icono: "school-outline", detalle: "50 % de descuento con carnet" },
-  exonerado: { nombre: "Exonerado", icono: "accessibility-outline", detalle: "Adultos mayores y personas con discapacidad" },
+  exonerado: { nombre: "Exonerado", icono: "accessibility-outline", detalle: "Adultos mayores y personas con discapacidad · 50 % de descuento" },
 };

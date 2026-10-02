@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { NativeModules, Pressable, StyleSheet, TurboModuleRegistry, View } from "react-native";
 import type { WebView as WebViewType } from "react-native-webview";
 import { Ionicons } from "@expo/vector-icons";
+import { formatearBs } from "@componentes/formato";
 import { colors, radius, sombra } from "@nucleo/theme";
 import type { UnidadMapa } from "@nucleo/types/mapa";
 
@@ -12,8 +13,19 @@ export const CENTRO_MERIDA = { lat: 8.5897, lng: -71.1561 };
 export const mapaDisponible = (TurboModuleRegistry.get("RNCWebViewModule") ?? NativeModules.RNCWebViewModule) != null;
 const cargarWebView = (): typeof WebViewType => require("react-native-webview").WebView;
 
+/** Recorrido de una ruta para dibujar en morado (lo marca la central en el panel). */
+export interface TrazoRuta {
+  lineaNombre: string;
+  tramoNombre: string;
+  /** Pasaje completo según la gaceta, céntimos. */
+  tarifa: number;
+  trazo: [number, number][];
+}
+
 interface Props {
   unidades: UnidadMapa[];
+  /** Recorridos a dibujar; al cambiar `enfoque` el mapa también se acerca a ellos. */
+  trazos?: TrazoRuta[];
   /** Cuando cambia, el mapa se acerca a las unidades visibles (p. ej. al elegir una línea). */
   enfoque?: string;
   /** Código de la unidad del recolector: se dibuja resaltada. */
@@ -23,7 +35,7 @@ interface Props {
 }
 
 /** Mapa Leaflet (teselas de OpenStreetMap, sin clave) dentro de un WebView, con un autobús por unidad. */
-export function MapaUnidades({ unidades, enfoque, miUnidad = null, miUbicacion = null }: Props) {
+export function MapaUnidades({ unidades, trazos = [], enfoque, miUnidad = null, miUbicacion = null }: Props) {
   const WebView = useRef(cargarWebView()).current;
   const web = useRef<WebViewType>(null);
   const [listo, setListo] = useState(false);
@@ -35,6 +47,16 @@ export function MapaUnidades({ unidades, enfoque, miUnidad = null, miUbicacion =
     enfoqueAplicado.current = enfoque;
     web.current?.injectJavaScript(`window.actualizar(${JSON.stringify(unidades)}, ${ajustar}, ${JSON.stringify(miUnidad)}); true;`);
   }, [listo, unidades, enfoque, miUnidad]);
+
+  // Los recorridos van antes que las unidades: el encuadre de las unidades (si hay) manda.
+  const enfoqueTrazos = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!listo) return;
+    const ajustar = enfoque !== enfoqueTrazos.current && unidades.length === 0;
+    enfoqueTrazos.current = enfoque;
+    const lista = trazos.map((t) => ({ ...t, precio: formatearBs(t.tarifa) }));
+    web.current?.injectJavaScript(`window.trazos(${JSON.stringify(lista)}, ${ajustar}); true;`);
+  }, [listo, trazos, enfoque, unidades.length]);
 
   useEffect(() => {
     if (!listo || !miUbicacion) return;
@@ -70,6 +92,9 @@ function BotonMapa({ icono, etiqueta, onPress }: { icono: keyof typeof Ionicons.
     </Pressable>
   );
 }
+
+// Morado de la marca para los recorridos (mismo que el panel).
+const COLOR_TRAZO = "#7C3AED";
 
 // Un color fijo por línea (por nombre, que es lo que trae /mapa/unidades).
 const COLORES_LINEA = ["#6D28D9", "#0E7490", "#C2410C", "#15803D", "#BE185D", "#1D4ED8", "#A16207"];
@@ -108,6 +133,20 @@ const HTML = `<!doctype html>
     maxZoom: 19,
     attribution: '&copy; OpenStreetMap'
   }).addTo(mapa);
+
+  // Recorridos de las rutas en morado, debajo de los autobuses.
+  var capaTrazos = L.layerGroup().addTo(mapa);
+  window.trazos = function (lista, ajustar) {
+    capaTrazos.clearLayers();
+    var puntos = [];
+    lista.forEach(function (t) {
+      var linea = L.polyline(t.trazo, { color: '${COLOR_TRAZO}', weight: 6, opacity: 0.8 }).addTo(capaTrazos);
+      linea.bindPopup('<b>' + esc(t.lineaNombre) + '</b><br>' + esc(t.tramoNombre) +
+        '<br><span class="suave">Pasaje ' + esc(t.precio) + '</span>');
+      puntos = puntos.concat(t.trazo);
+    });
+    if (ajustar && puntos.length) mapa.fitBounds(puntos, { padding: [40, 40], maxZoom: 15 });
+  };
 
   var marcadores = {};
   var datos = {};

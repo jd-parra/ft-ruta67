@@ -5,9 +5,12 @@ import { formatearBs } from "@componentes/formato";
 import { colors, radius, sombra } from "@nucleo/theme";
 import { saldoTotal, type Billetera } from "@nucleo/types/billetera";
 
-/** Saldo total (libre + apartado en boletos) y cuántos viajes alcanza (contrato sección 14, Inicio). */
+/**
+ * Saldo total (libre + apartado en boletos) y cuántos viajes alcanza (contrato sección 14, Inicio).
+ * Debajo, en letra pequeña, con qué tarifa se calcula: el pasaje urbano de la gaceta con su descuento.
+ */
 export function TarjetaSaldo({ billetera }: { billetera: Billetera }) {
-  const { viajesEstimados } = billetera;
+  const { viajesEstimados, tarifaReferencia, tarifaFuente } = billetera;
   return (
     <View style={styles.tarjeta}>
       {/* Círculos decorativos: dan profundidad sin depender de un gradiente nativo. */}
@@ -27,6 +30,12 @@ export function TarjetaSaldo({ billetera }: { billetera: Billetera }) {
             : `Te alcanza para ≈ ${viajesEstimados} ${viajesEstimados === 1 ? "viaje" : "viajes"}`}
         </AppText>
       </View>
+      {tarifaReferencia > 0 && (
+        <AppText style={styles.nota}>
+          Calculado con el pasaje urbano de {formatearBs(tarifaReferencia)}
+          {tarifaFuente ? ` · ${tarifaFuente}` : ""}. Las rutas largas pueden costar más.
+        </AppText>
+      )}
     </View>
   );
 }
@@ -50,4 +59,5 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   viajesTexto: { color: colors.blanco, fontWeight: "600", fontSize: 13 },
+  nota: { color: colors.primarioClaro, fontSize: 11, opacity: 0.85, marginTop: 6 },
 });

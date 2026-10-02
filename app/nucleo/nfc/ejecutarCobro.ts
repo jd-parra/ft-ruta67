@@ -15,7 +15,8 @@ export type CodigoCobro =
   | "ERROR_LOCAL"
   | "NFC_ERROR"
   | "NFC_CANCELADO"
-  | "CORRECCION_FALLIDA";
+  | "CORRECCION_FALLIDA"
+  | "QR_INVALIDO";
 
 const MENSAJES_COBRO: Record<Exclude<CodigoCobro, CodigoBoleto>, string> = {
   PASAJERO_SIN_APP: "El pasajero debe abrir la pantalla Pagar",
@@ -26,6 +27,7 @@ const MENSAJES_COBRO: Record<Exclude<CodigoCobro, CodigoBoleto>, string> = {
   NFC_ERROR: "Se perdió la conexión NFC. Vuelve a acercar el teléfono.",
   NFC_CANCELADO: "Lectura cancelada",
   CORRECCION_FALLIDA: "No se pudo corregir el cobro",
+  QR_INVALIDO: "Ese QR no es un boleto de Ruta67",
 };
 
 export interface Falla {
